@@ -1,18 +1,52 @@
-# segredos e dados reais: nunca versionar
+# ---- Segredos e credenciais: nunca versionar ----
 .env
+.env.*
+!.env.example
+!infra/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials*.json
+*service-account*.json
+
+# ---- Dados reais: banco, planilhas, exportações ----
 *.sql
 *.sql.gz
+*.dump
 *.tsv
 *.csv
-*.xlsx
 *.xls
-*.bak*
+*.xlsx
+*.ods
+*.bak
+*.bak-*
 data/
 import/
 backup*/
+backups-glpi/
 analise/
-# sistema
+
+# ---- Dados pessoais de funcionários ----
+tools/Atualizar-CargosAD.ps1
+
+# ---- Dependências e builds ----
+node_modules/
+vendor/
+*.zip
+*.tar.gz
+
+# ---- Logs e temporários ----
+*.log
+*.tmp
+*.swp
+*~
+
+# ---- Sistema e editores ----
 .DS_Store
 Thumbs.db
-*.log
-tools/Atualizar-CargosAD.ps1
+desktop.ini
+.idea/
+.vscode/
