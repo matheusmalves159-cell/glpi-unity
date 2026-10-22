@@ -1,0 +1,153 @@
+{% macro moeda(valor) %}R$ {{ valor|number_format(2, ',', '.') }}{% endmacro %}
+{% import _self as m %}
+{% set dias = {'Monday': 'segunda', 'Tuesday': 'terça', 'Wednesday': 'quarta', 'Thursday': 'quinta', 'Friday': 'sexta', 'Saturday': 'sábado', 'Sunday': 'domingo'} %}
+
+<div class="container-fluid" style="max-width: 1200px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-file-spreadsheet"></i> Planilha de Pagamentos</h2>
+        {% if admin %}
+            <a class="btn btn-outline-secondary" href="{{ path('/plugins/pagamentos/front/config.form.php') }}">
+                <i class="ti ti-settings"></i><span>Configurar</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <form method="get" id="pg-filtros" class="card mb-3">
+        <div class="card-body">
+            <div class="fw-bold mb-1">Escolha os chamados abertos que entram na planilha</div>
+            <div class="text-muted small mb-3">Pode ser um único dia (De e Até iguais) ou um intervalo. Setor e forma de pagamento são opcionais.</div>
+            <div class="row g-3 align-items-center">
+                <div class="col-6 col-lg-2">
+                    <label class="form-label" for="pg-de">De</label>
+                    <input type="date" class="form-control" id="pg-de" name="de" value="{{ filtros.de }}" max="{{ 'now'|date('Y-m-d') }}" required>
+                    <div class="form-text" id="pg-de-dia">&nbsp;</div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <label class="form-label" for="pg-ate">Até</label>
+                    <input type="date" class="form-control" id="pg-ate" name="ate" value="{{ filtros.ate }}" max="{{ 'now'|date('Y-m-d') }}" required>
+                    <div class="form-text" id="pg-ate-dia">&nbsp;</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label" for="pg-setor">Setor</label>
+                    <select class="form-select" id="pg-setor" name="setor">
+                        <option value="">Todos os setores</option>
+                        {% for s in setores %}
+                            <option value="{{ s }}" {{ filtros.setor == s ? 'selected' }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">&nbsp;</div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label" for="pg-forma">Forma de pagamento</label>
+                    <select class="form-select" id="pg-forma" name="forma">
+                        <option value="">Todas</option>
+                        {% for f in formas %}
+                            <option value="{{ f }}" {{ filtros.forma == f ? 'selected' }}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">&nbsp;</div>
+                </div>
+                <div class="col-12 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-outline-secondary"><i class="ti ti-refresh"></i><span>Atualizar</span></button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h3 class="card-title mb-0">
+                    {{ filtros.setor ?: 'Todos os setores' }} —
+                    {% if filtros.de == filtros.ate %}
+                        pedidos abertos na {{ dias[filtros.de|date('l')] }}, {{ filtros.de|date('d/m/Y') }}
+                    {% else %}
+                        pedidos abertos de {{ filtros.de|date('d/m/Y') }} a {{ filtros.ate|date('d/m/Y') }}
+                    {% endif %}
+                    {% if filtros.forma %}({{ filtros.forma }}){% endif %}
+                </h3>
+                <div class="text-muted small">{{ pedidos|length }} pedido(s) · total <strong class="text-body">{{ m.moeda(total) }}</strong></div>
+            </div>
+            <a class="btn btn-primary {{ pedidos is empty ? 'disabled' }}" href="{{ path(gerar_url) }}">
+                <i class="ti ti-download"></i><span>Gerar Excel</span>
+            </a>
+        </div>
+
+        {% if por_setor|length > 1 %}
+            <div class="card-body border-bottom py-2">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for setor, s in por_setor %}
+                        <span class="badge bg-blue-lt fs-5 fw-normal">{{ setor }}: {{ s.qtde }} · <strong>{{ m.moeda(s.total) }}</strong></span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if pedidos is empty %}
+            <div class="card-body text-muted">Nenhum pedido encontrado com esses filtros.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-sm table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Chamado</th>
+                            <th>Fornecedor</th>
+                            <th>CNPJ</th>
+                            <th class="text-end">Valor</th>
+                            <th>Descrição</th>
+                            <th>Setor solicitante</th>
+                            <th>Pagamento</th>
+                            <th>Local</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pedidos %}
+                            <tr>
+                                <td>{% if p.chamado %}<a href="{{ path('/front/ticket.form.php') }}?id={{ p.chamado }}">{{ p.chamado }}</a>{% else %}—{% endif %}</td>
+                                <td>{{ p.fornecedor }}</td>
+                                <td class="text-nowrap">{{ p.documento }}</td>
+                                <td class="text-end text-nowrap">
+                                    {% if p.valor is not null %}{{ m.moeda(p.valor) }}{% else %}<span class="text-danger" title="Valor não reconhecido">{{ p.valor_texto }}</span>{% endif %}
+                                </td>
+                                <td>{{ p.servico }}</td>
+                                <td>{{ p.setor }}</td>
+                                <td>{{ p.forma }}</td>
+                                <td>{{ p.local }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted small">Arquivo: {{ nome_arquivo }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    (function () {
+        var form = document.getElementById('pg-filtros');
+        var de = document.getElementById('pg-de');
+        var ate = document.getElementById('pg-ate');
+        var nomes = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+        function diaDaSemana(campo, saida) {
+            var p = (campo.value || '').split('-');
+            document.getElementById(saida).textContent = p.length === 3 ? nomes[new Date(p[0], p[1] - 1, p[2]).getDay()] : ' ';
+        }
+        function ajustar(origem) {
+            // "Até" nunca antes de "De"
+            if (de.value && ate.value && ate.value < de.value) {
+                if (origem === de) { ate.value = de.value; } else { de.value = ate.value; }
+            }
+            diaDaSemana(de, 'pg-de-dia');
+            diaDaSemana(ate, 'pg-ate-dia');
+        }
+        // Qualquer filtro alterado atualiza a lista
+        [de, ate, document.getElementById('pg-setor'), document.getElementById('pg-forma')].forEach(function (campo) {
+            campo.addEventListener('change', function () {
+                ajustar(campo);
+                if (de.value && ate.value) { form.submit(); }
+            });
+        });
+        ajustar(null);
+    })();
+</script>

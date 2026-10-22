@@ -1,0 +1,53 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: glpi-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: glpidb
+      MARIADB_USER: glpiuser
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      TZ: America/Sao_Paulo
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./import/glpidb.sql.gz:/docker-entrypoint-initdb.d/glpidb.sql.gz:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+  glpi:
+    image: glpi/glpi:11.0.9
+    container_name: glpi
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GLPI_SKIP_AUTOINSTALL: "true"
+      GLPI_SKIP_AUTOUPDATE: "true"
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./data:/var/glpi
+      - ./plugins:/var/www/glpi/plugins
+      - ./php/zz-homolog.ini:/usr/local/etc/php/conf.d/zz-homolog.ini:ro
+      - ./apache/headers.load:/etc/apache2/mods-enabled/headers.load:ro
+      - ./apache/zz-seguranca.conf:/etc/apache2/conf-enabled/zz-seguranca.conf:ro
+    ports:
+      - "8080:80"
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    container_name: glpi-mailpit
+    restart: unless-stopped
+    environment:
+      TZ: America/Sao_Paulo
+      MP_MAX_MESSAGES: "500"
+    ports:
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  db_data:

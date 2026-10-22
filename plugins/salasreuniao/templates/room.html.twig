@@ -1,0 +1,25 @@
+{% extends 'generic_show_form.html.twig' %}
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+{% block form_fields %}
+    {{ fields.textField('name', item.fields['name'], __('Name'), {
+        required: true,
+        helper: 'Ex.: Sala de Reunião 1',
+    }) }}
+    {{ fields.sliderField('is_active', item.isNewItem() ? 1 : item.fields['is_active'], __('Active')) }}
+
+    {{ fields.textField('google_calendar_id', item.fields['google_calendar_id'], 'ID da agenda do Google', {
+        required: true,
+        helper: 'No Google Agenda: Configurações da agenda da sala → Integrar agenda → "ID da agenda".'
+            ~ (conta_servico ? ' Compartilhe essa agenda com ' ~ conta_servico ~ ' com a permissão "Fazer alterações nos eventos".' : ''),
+    }) }}
+    {{ fields.numberField('capacity', item.fields['capacity'], 'Capacidade (pessoas)', {
+        min: 0,
+        step: 1,
+        helper: 'Opcional. Deixe 0 para não limitar: a sala aparece para qualquer quantidade de pessoas.',
+    }) }}
+    {{ fields.textField('location', item.fields['location'], 'Local', {
+        helper: 'Ex.: 2º andar',
+    }) }}
+    {{ fields.textareaField('comment', item.fields['comment'], _n('Comment', 'Comments', 2)) }}
+{% endblock %}

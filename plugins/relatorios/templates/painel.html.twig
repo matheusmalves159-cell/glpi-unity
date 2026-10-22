@@ -1,0 +1,282 @@
+{% macro pct(v) %}{{ v is null ? '—' : (v|number_format(1, ',', '.') ~ '%') }}{% endmacro %}
+{% macro badge_pct(v) %}
+    {% if v is null %}<span class="text-muted">—</span>
+    {% else %}<span class="badge {{ v >= 90 ? 'bg-green-lt' : (v >= 70 ? 'bg-yellow-lt' : 'bg-red-lt') }}">{{ v|number_format(1, ',', '.') }}%</span>{% endif %}
+{% endmacro %}
+{% macro ranking(lista, rotulo, com_setor) %}
+    {% import _self as m %}
+    {% if lista is empty %}
+        <div class="card-body text-muted">Sem dados no período.</div>
+    {% else %}
+        <div class="table-responsive rl-tabela">
+            <table class="table table-vcenter table-sm card-table table-striped">
+                <thead>
+                    <tr>
+                        <th>{{ rotulo }}</th>
+                        {% if com_setor %}<th>Setor</th>{% endif %}
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Em aberto</th>
+                        <th class="text-end">Solucionados</th>
+                        <th class="text-end">Abertos atrasados</th>
+                        <th class="text-end">SLA resposta</th>
+                        <th class="text-end">SLA solução</th>
+                        <th class="text-end">Média 1ª resposta</th>
+                        <th class="text-end">Média solução</th>
+                        <th class="text-end">Maior solução</th>
+                        <th class="text-end">Satisfação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in lista %}
+                        {% set partes = g.nome|split("\t") %}
+                        <tr>
+                            <td class="fw-bold">{{ partes[0] }}</td>
+                            {% if com_setor %}<td>{{ partes[1]|default('') }}</td>{% endif %}
+                            <td class="text-end">{{ g.total }}</td>
+                            <td class="text-end">{{ g.abertos }}</td>
+                            <td class="text-end">{{ g.solucionados }}</td>
+                            <td class="text-end">{% if g.abertos_atrasados %}<span class="badge bg-red-lt">{{ g.abertos_atrasados }}</span>{% else %}0{% endif %}</td>
+                            <td class="text-end">{{ m.badge_pct(g.sla_resposta) }}</td>
+                            <td class="text-end">{{ m.badge_pct(g.sla_solucao) }}</td>
+                            <td class="text-end text-nowrap">{{ g.resp_txt }}</td>
+                            <td class="text-end text-nowrap">{{ g.sol_txt }}</td>
+                            <td class="text-end text-nowrap">{{ g.max_txt }}</td>
+                            <td class="text-end">{{ g.satisfacao is null ? '—' : g.satisfacao|number_format(1, ',', '.') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endmacro %}
+{% import _self as m %}
+
+<div class="container-fluid rl-tela">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-report-analytics"></i> Relatórios de chamados</h2>
+        <form id="rl-exportar" method="post" action="{{ path('/plugins/relatorios/front/exportar.php') }}" class="d-flex gap-2">
+            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+            {% for chave, valor in f %}<input type="hidden" name="{{ chave }}" value="{{ valor }}">{% endfor %}
+            <input type="hidden" name="formato" value="">
+            <div id="rl-imagens"></div>
+            <button type="submit" class="btn btn-success" data-formato="xlsx"><i class="ti ti-file-spreadsheet"></i><span>Exportar Excel</span></button>
+            <button type="submit" class="btn btn-danger" data-formato="pdf"><i class="ti ti-file-type-pdf"></i><span>Exportar PDF</span></button>
+        </form>
+    </div>
+
+    {# Filtros #}
+    <form method="get" action="{{ path('/plugins/relatorios/front/painel.php') }}" class="card mb-3" id="rl-filtros">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-1 mb-3" id="rl-atalhos">
+                <span class="text-muted me-1 align-self-center">Período:</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="hoje">Hoje</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="7">Últimos 7 dias</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="30">Últimos 30 dias</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="mes">Este mês</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="mes_passado">Mês passado</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="tri">Últimos 3 meses</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="ano">Este ano</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="ano_passado">Ano passado</button>
+            </div>
+            <div class="row g-2 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="rl-de">De</label>
+                    <input type="date" class="form-control" id="rl-de" name="de" value="{{ f.de }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="rl-ate">Até</label>
+                    <input type="date" class="form-control" id="rl-ate" name="ate" value="{{ f.ate }}">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="rl-categoria">Categoria</label>
+                    <select class="form-select" id="rl-categoria" name="categoria">
+                        <option value="0">Todas</option>
+                        {% for id, nome in opcoes.categorias %}<option value="{{ id }}" {{ f.categoria == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="rl-setor">Setor (de quem abriu)</label>
+                    <select class="form-select" id="rl-setor" name="setor">
+                        <option value="0">Todos</option>
+                        {% for id, nome in opcoes.grupos %}<option value="{{ id }}" {{ f.setor == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="rl-grupo">Grupo atribuído</label>
+                    <select class="form-select" id="rl-grupo" name="grupo">
+                        <option value="0">Todos</option>
+                        {% for id, nome in opcoes.grupos %}<option value="{{ id }}" {{ f.grupo == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="rl-tecnico">Técnico</label>
+                    <select class="form-select" id="rl-tecnico" name="tecnico">
+                        <option value="0">Todos</option>
+                        {% for id, nome in opcoes.tecnicos %}<option value="{{ id }}" {{ f.tecnico == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="rl-prioridade">Prioridade</label>
+                    <select class="form-select" id="rl-prioridade" name="prioridade">
+                        <option value="0">Todas</option>
+                        {% for id, nome in prioridades %}<option value="{{ id }}" {{ f.prioridade == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="rl-tipo">Tipo</label>
+                    <select class="form-select" id="rl-tipo" name="tipo">
+                        <option value="0">Todos</option>
+                        {% for id, nome in tipos %}<option value="{{ id }}" {{ f.tipo == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label" for="rl-situacao">Situação</label>
+                    <select class="form-select" id="rl-situacao" name="situacao">
+                        {% for id, nome in situacoes %}<option value="{{ id }}" {{ f.situacao == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                    <a class="btn btn-ghost-secondary" href="{{ path('/plugins/relatorios/front/painel.php') }}"><i class="ti ti-eraser"></i><span>Limpar</span></a>
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-filter"></i><span>Aplicar filtros</span></button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {# Indicadores #}
+    <div class="row g-2 mb-3">
+        {% set cartoes = [
+            ['Chamados', k.total, 'ti-ticket', 'azul', null],
+            ['Em aberto', k.abertos, 'ti-hourglass', 'laranja', null],
+            ['Solucionados', k.solucionados, 'ti-circle-check', 'verde', null],
+            ['Abertos com SLA estourado', k.abertos_atrasados, 'ti-alarm', 'vermelho', null],
+            ['SLA de resposta', m.pct(k.sla_resposta), 'ti-clock-check', k.sla_resposta is null ? 'cinza' : (k.sla_resposta >= 90 ? 'verde' : (k.sla_resposta >= 70 ? 'laranja' : 'vermelho')), k.tto_ok ~ ' no prazo · ' ~ k.tto_atraso ~ ' atrasados'],
+            ['SLA de solução', m.pct(k.sla_solucao), 'ti-flag-check', k.sla_solucao is null ? 'cinza' : (k.sla_solucao >= 90 ? 'verde' : (k.sla_solucao >= 70 ? 'laranja' : 'vermelho')), k.ttr_ok ~ ' no prazo · ' ~ k.ttr_atraso ~ ' atrasados'],
+            ['Média 1ª resposta', k.resp_txt, 'ti-message-check', 'azul', 'horário comercial'],
+            ['Média de solução', k.sol_txt, 'ti-tool', 'azul', 'horário comercial'],
+        ] %}
+        {% for c in cartoes %}
+            <div class="col-6 col-md-3">
+                <div class="card rl-kpi rl-{{ c[3] }}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ti {{ c[2] }} rl-kpi-icone"></i>
+                            <div>
+                                <div class="rl-kpi-rotulo">{{ c[0] }}</div>
+                                <div class="rl-kpi-valor">{{ c[1] }}</div>
+                                {% if c[4] %}<div class="rl-kpi-extra">{{ c[4] }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if total == 0 %}
+        <div class="alert alert-info">Nenhum chamado encontrado com esses filtros.</div>
+    {% else %}
+    {# Gráficos #}
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="card"><div class="card-header"><h3 class="card-title">Abertos × solucionados {{ {'dia': 'por dia', 'semana': 'por semana', 'mes': 'por mês'}[a.evolucao.passo] }}</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="evolucao" data-titulo="Abertos x solucionados" style="height:300px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">SLA de resposta</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="sla_tto" data-titulo="SLA de resposta" style="height:260px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">SLA de solução</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="sla_ttr" data-titulo="SLA de solução" style="height:260px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Situação</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="status" data-titulo="Situação dos chamados" style="height:260px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">SLA de solução por prioridade</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="prioridades" data-titulo="SLA de solução por prioridade" style="height:300px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Técnicos: atendidos e tempo médio de solução</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="tecnicos" data-titulo="Técnicos: atendidos e tempo médio de solução" style="height:300px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Setores que mais abriram</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="setores" data-titulo="Setores que mais abriram" style="height:320px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Colaboradores que mais abriram</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="requerentes" data-titulo="Colaboradores que mais abriram" style="height:320px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Categorias mais pedidas</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="categorias" data-titulo="Categorias mais pedidas" style="height:320px"></div></div></div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100"><div class="card-header"><h3 class="card-title">Quando os chamados são abertos</h3></div>
+                <div class="card-body"><div class="rl-grafico" data-grafico="calor" data-titulo="Quando os chamados são abertos (dia x hora)" style="height:320px"></div></div></div>
+        </div>
+    </div>
+
+    {# Tabelas #}
+    <div class="card mb-3">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                {% for id, nome in {'tecnicos': 'Técnicos', 'grupos': 'Grupos atribuídos', 'setores': 'Setores', 'requerentes': 'Quem mais abriu', 'categorias': 'Categorias', 'prioridades': 'Prioridades', 'chamados': 'Chamados'} %}
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ loop.first ? 'active' }}" data-bs-toggle="tab" href="#rl-aba-{{ id }}" role="tab">{{ nome }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="tab-content">
+            <div class="tab-pane active show" id="rl-aba-tecnicos" role="tabpanel">{{ m.ranking(a.tecnicos, 'Técnico', false) }}</div>
+            <div class="tab-pane" id="rl-aba-grupos" role="tabpanel">{{ m.ranking(a.grupos, 'Grupo', false) }}</div>
+            <div class="tab-pane" id="rl-aba-setores" role="tabpanel">{{ m.ranking(a.setores, 'Setor', false) }}</div>
+            <div class="tab-pane" id="rl-aba-requerentes" role="tabpanel">{{ m.ranking(a.requerentes, 'Colaborador', true) }}</div>
+            <div class="tab-pane" id="rl-aba-categorias" role="tabpanel">{{ m.ranking(a.categorias, 'Categoria', false) }}</div>
+            <div class="tab-pane" id="rl-aba-prioridades" role="tabpanel">{{ m.ranking(a.prioridades, 'Prioridade', false) }}</div>
+            <div class="tab-pane" id="rl-aba-chamados" role="tabpanel">
+                <div class="card-body py-2 text-muted small">
+                    Mostrando os {{ chamados|length }} mais recentes de {{ total }}. A lista completa (todas as colunas) está no <b>Excel</b> e no <b>PDF</b>.
+                </div>
+                <div class="table-responsive rl-tabela">
+                    <table class="table table-vcenter table-sm card-table table-striped">
+                        <thead><tr>
+                            <th>Nº</th><th>Abertura</th><th>Título</th><th>Categoria</th><th>Requerente</th><th>Setor</th><th>Técnico(s)</th>
+                            <th>Prioridade</th><th>Situação</th><th>SLA resposta</th><th>SLA solução</th><th class="text-end">Tempo de solução</th>
+                        </tr></thead>
+                        <tbody>
+                            {% for c in chamados %}
+                                <tr>
+                                    <td><a href="{{ path('/front/ticket.form.php') }}?id={{ c.id }}">{{ c.id }}</a></td>
+                                    <td class="text-nowrap">{{ c.abertura_txt }}</td>
+                                    <td>{{ c.titulo }}</td>
+                                    <td>{{ c.categoria }}</td>
+                                    <td>{{ c.requerente }}</td>
+                                    <td>{{ c.setor }}</td>
+                                    <td>{{ c.tecnicos|join(', ') }}</td>
+                                    <td>{{ c.prioridade }}</td>
+                                    <td>{{ c.status }}</td>
+                                    {% for s in [c.sla_resposta, c.sla_solucao] %}
+                                        <td><span class="badge {{ s == 'atrasado' ? 'bg-red-lt' : (s == 'no_prazo' ? 'bg-green-lt' : (s == 'andamento' ? 'bg-blue-lt' : 'bg-secondary-lt')) }}">{{ sla_rotulos[s] }}</span></td>
+                                    {% endfor %}
+                                    <td class="text-end text-nowrap">{{ c.tempo_txt }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted small">Tempos contados em horário comercial (mesmo calendário dos SLAs). SLA % = no prazo ÷ (no prazo + atrasados); chamados ainda dentro do prazo não entram na conta. Setor = grupo requerente do chamado (ou o grupo do colaborador).</p>
+    {% endif %}
+</div>
+
+<script type="application/json" id="rl-dados">{{ graficos|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
+<link rel="stylesheet" href="{{ path('/plugins/relatorios/css/relatorios.css') }}?v={{ constant('PLUGIN_RELATORIOS_VERSION') }}">
+<script src="{{ path('/lib/echarts.min.js') }}"></script>
+<script src="{{ path('/plugins/relatorios/js/painel.js') }}?v={{ constant('PLUGIN_RELATORIOS_VERSION') }}"></script>

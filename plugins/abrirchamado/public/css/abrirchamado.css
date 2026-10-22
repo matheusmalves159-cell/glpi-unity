@@ -1,0 +1,628 @@
+/* Botão "Abrir Chamados" no menu principal */
+.navbar-nav > li.abrirchamado-item {
+    display: flex;
+    align-items: center;
+    margin: 0 .5rem;
+}
+
+.abrirchamado-btn,
+.abrirchamado-btn:visited {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem 1rem;
+    border-radius: 6px;
+    background: #fdc300;
+    color: #1f2a44 !important;
+    font-weight: 700;
+    font-size: .95rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    transition: background-color .15s ease, transform .15s ease;
+}
+
+.abrirchamado-btn:hover,
+.abrirchamado-btn:focus-visible {
+    background: #ffd23f;
+    transform: translateY(-1px);
+}
+
+.abrirchamado-btn i {
+    font-size: 1.15rem;
+}
+
+/* Botão de tema claro/escuro ao lado do usuário */
+.ac-tema {
+    align-self: center;
+    margin-right: .25rem;
+    font-size: 1.2rem;
+    color: inherit;
+}
+
+/* Menu recolhido (telas pequenas) */
+@media (max-width: 991.98px) {
+    .navbar-nav > li.abrirchamado-item {
+        margin: .5rem 0;
+    }
+}
+
+/* Sem página Home: esconde o item "Home" da trilha de navegação */
+.breadcrumb > .breadcrumb-item:has(.ti-home-2) {
+    display: none;
+}
+
+.breadcrumb > .breadcrumb-item:has(.ti-home-2) + .breadcrumb-item::before {
+    content: none;
+}
+
+/* Menu Assistência sem itens repetidos: o Catálogo de serviços já tem
+   os cartões da reserva de sala e da solicitação de pagamento */
+.dropdown-item[href$="/plugins/salasreuniao/front/agendar.php"],
+.dropdown-item[href$="/plugins/pagamentos/front/solicitar.php"] {
+    display: none !important;
+}
+
+/* Menu principal: sem o botão "Encontrar um menu" */
+.btn.trigger-fuzzy {
+    display: none !important;
+}
+
+/* Chamados: sem o botão "Adicionar" do topo (chamados são abertos por "Abrir Chamados") */
+.nav-item > a.btn[href$="/front/ticket.form.php"] {
+    display: none !important;
+}
+
+/* Chamados: sem o botão "Kanban global" */
+a[href*="showglobalkanban"] {
+    display: none !important;
+}
+
+/* Lista de chamados: filtros rápidos (ver filtrosRapidos no JS) */
+.ac-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    padding: .65rem .85rem;
+    border-bottom: 1px solid var(--tblr-border-color, #dce1e7);
+}
+.ac-filtros-linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem;
+}
+.ac-filtros-linha[hidden] {
+    display: none;
+}
+.ac-filtros-rotulo {
+    min-width: 62px;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--tblr-secondary-color, #667382);
+}
+.ac-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .18rem .75rem;
+    border-radius: 999px;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    background: transparent;
+    color: inherit;
+    font-weight: 500;
+    line-height: 1.3;
+}
+.ac-chip:hover {
+    border-color: var(--tblr-primary, #1a5fb4);
+    color: var(--tblr-primary, #1a5fb4);
+    background: color-mix(in srgb, var(--tblr-primary, #1a5fb4) 10%, transparent);
+}
+.ac-chip.active,
+.ac-chip.active:hover {
+    background: var(--tblr-primary, #1a5fb4);
+    border-color: var(--tblr-primary, #1a5fb4);
+    color: var(--tblr-primary-fg, #fff);
+}
+.ac-chip .ac-ponto {
+    width: .55rem;
+    height: .55rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.ac-chip.active .ac-ponto {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .7);
+}
+.ac-chip-limpar {
+    border-style: dashed;
+    color: var(--tblr-secondary-color, #667382);
+}
+.ac-filtros-busca {
+    margin-left: auto;
+    width: min(100%, 260px);
+}
+@media (max-width: 767.98px) {
+    .ac-filtros-busca {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Tela de Perfis: permissões em português simples (ver perfis.js e src/Perfil.php) */
+.ac-oculto { display: none !important; }
+.ac-ajuda {
+    font-size: .78rem;
+    font-weight: 400;
+    color: var(--tblr-secondary-color, #667382);
+    line-height: 1.3;
+}
+.ac-modo-perfil {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin: 0 0 .75rem;
+    padding: .5rem .85rem;
+    border-radius: 8px;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    background: color-mix(in srgb, currentColor 4%, transparent);
+    font-size: .85rem;
+}
+.ac-perfil-linha {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    padding: .9rem 0;
+    border-bottom: 1px solid var(--tblr-border-color, #dce1e7);
+}
+.ac-perfil-icone {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    color: #b8860b;
+    background: color-mix(in srgb, #f5b700 18%, transparent);
+}
+.ac-perfil-corpo { flex: 1; min-width: 0; }
+.ac-perfil-opcoes { display: flex; flex-direction: column; gap: .35rem; margin-top: .55rem; }
+.ac-resumo-perfil {
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    margin-bottom: 1rem;
+    background: color-mix(in srgb, currentColor 3%, transparent);
+}
+.ac-resumo-titulo { font-weight: 700; margin-bottom: .6rem; }
+.ac-resumo-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem 1.5rem;
+}
+.ac-resumo-grupo-nome {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--tblr-secondary-color, #667382);
+    margin-bottom: .3rem;
+}
+.ac-resumo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+    padding: .12rem 0;
+    font-size: .88rem;
+    line-height: 1.3;
+}
+.ac-resumo-item.sim .ti { color: #2f9e44; }
+.ac-resumo-item.nao { opacity: .55; }
+.ac-resumo-item .ti { flex-shrink: 0; margin-top: .1rem; }
+.ac-resumo-nota {
+    margin-top: .8rem;
+    font-size: .8rem;
+    color: var(--tblr-secondary-color, #667382);
+}
+
+/* Avisos laterais (ver avisos.js) */
+.ac-avisos {
+    position: fixed;
+    top: 76px;
+    right: 16px;
+    z-index: 2050;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+.ac-aviso {
+    --ac-aviso-cor: #f5b700;
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .75rem .85rem;
+    border-radius: 10px;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-left: 4px solid var(--ac-aviso-cor);
+    background: var(--tblr-bg-surface, #fff);
+    color: var(--tblr-body-color, #1d273b);
+    box-shadow: 0 6px 20px rgba(11, 19, 28, .18);
+    animation: ac-aviso-entra .25s ease-out;
+}
+.ac-aviso.saindo {
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity .25s, transform .25s;
+}
+.ac-aviso-link { cursor: pointer; }
+.ac-aviso-link:hover { box-shadow: 0 8px 24px rgba(11, 19, 28, .28); }
+.ac-aviso-novo { --ac-aviso-cor: #f5b700; }
+.ac-aviso-ok { --ac-aviso-cor: #2f9e44; }
+.ac-aviso-pendencia { --ac-aviso-cor: #f59f00; }
+.ac-aviso-prazo { --ac-aviso-cor: #e8590c; }
+.ac-aviso-icone {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    color: var(--ac-aviso-cor);
+    background: color-mix(in srgb, var(--ac-aviso-cor) 16%, transparent);
+}
+.ac-aviso-texto { flex: 1; min-width: 0; }
+.ac-aviso-titulo { font-weight: 600; line-height: 1.25; }
+.ac-aviso-corpo {
+    margin-top: .15rem;
+    font-size: .85rem;
+    color: var(--tblr-secondary-color, #667382);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.ac-aviso-fechar {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    color: var(--tblr-secondary-color, #667382);
+    padding: 0;
+    line-height: 1;
+    cursor: pointer;
+}
+.ac-aviso-fechar:hover { color: inherit; }
+@keyframes ac-aviso-entra {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Painel: sem o botão nativo de modo noturno (o tema é escolhido no menu do usuário) */
+i.night-mode {
+    display: none !important;
+}
+
+
+/* Chamado: sem as abas Itens, Custos e Contratos */
+.nav-link[href*="forcetab=Item_Ticket"],
+.nav-link[href*="forcetab=TicketCost"],
+.nav-link[href*="forcetab=Ticket_Contract"],
+.nav-link[data-glpi-ajax-content*="_glpi_tab=Item_Ticket"],
+.nav-link[data-glpi-ajax-content*="_glpi_tab=TicketCost"],
+.nav-link[data-glpi-ajax-content*="_glpi_tab=Ticket_Contract"],
+.nav-link[data-bs-target^="#tab-Item_Ticket_"],
+.nav-link[data-bs-target^="#tab-TicketCost_"],
+.nav-link[data-bs-target^="#tab-Ticket_Contract_"] {
+    display: none !important;
+}
+
+/* Listas: sem a opção "Mostrar no mapa" (só a tabela é usada) */
+.btn-group:has(> #show_as_map) {
+    display: none !important;
+}
+
+/* Menu principal: colunas alinhadas, com título de grupo (ver organizarMenu no JS) */
+@media (min-width: 992px) {
+    #navbar-menu .dropdown-menu-columns {
+        gap: .25rem;
+        padding: 0 .25rem .25rem;
+    }
+
+    #navbar-menu .dropdown-menu-column {
+        min-width: 230px;
+    }
+
+    #navbar-menu .dropdown-menu-column + .dropdown-menu-column {
+        border-left: 1px solid var(--tblr-border-color-translucent, rgba(4, 32, 69, .1));
+        padding-left: .25rem;
+    }
+
+    #navbar-menu .dropdown-menu .dropdown-item .text-wrap {
+        white-space: nowrap !important;
+    }
+}
+
+/* Grupo que vem embaixo de outro na mesma coluna: um respiro e uma linha separando */
+.dropdown-menu-column .dropdown-item + .ac-menu-grupo {
+    margin-top: .35rem;
+    border-top: 1px solid var(--tblr-border-color-translucent, rgba(4, 32, 69, .1));
+    padding-top: .6rem;
+}
+
+.dropdown-menu .ac-menu-grupo {
+    padding: .5rem 1rem .25rem;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--tblr-secondary-color, #667382);
+}
+
+/* Pesquisas salvas não são usadas: menu, painel lateral e botão das listas */
+.dropdown-item[href$="/front/savedsearch.php"],
+.saved-searches-panel,
+.show-saved-searches {
+    display: none !important;
+}
+
+/* Categorias em árvore recolhível (ver js/categorias.js) */
+.catarvore .catarvore-oculto {
+    display: none !important;
+}
+
+.catarvore-seta {
+    display: inline-block;
+    width: 1.1em;
+    margin-right: .2rem;
+    transition: transform .15s ease;
+    visibility: hidden;
+}
+
+.catarvore .catarvore-pai > .catarvore-seta {
+    visibility: visible;
+}
+
+.catarvore .catarvore-aberto > .catarvore-seta {
+    transform: rotate(90deg);
+}
+
+.catarvore .catarvore-pai {
+    font-weight: 600;
+}
+
+/* Tela do chamado: sem "Itens" e "Objetos de assistência relacionados" */
+.abrirchamado-ticket section.accordion-item:has(#items-heading),
+.abrirchamado-ticket section.accordion-item:has(#linked_itilobjects-heading) {
+    display: none !important;
+}
+
+/* Pendência: sem lembrete automático nem solução automática (ver js/chamado.js) */
+[id^="pending-reasons-more_options_"] {
+    display: none !important;
+}
+
+.abrirchamado-ticket .ac-escondido {
+    display: none !important;
+}
+
+/* Botões separados ao lado de "Responder" (cada um com seu espaço, não grudados) */
+.abrirchamado-ticket #itil-footer .main-actions {
+    gap: .5rem;
+}
+
+.abrirchamado-ticket #itil-footer .main-actions > .btn {
+    margin-left: 0 !important;
+    border-radius: var(--tblr-border-radius, 6px) !important;
+}
+
+.abrirchamado-ticket #itil-footer .main-actions .ac-pendencia {
+    background-color: #ffe3bf;
+    border-color: #ffd29a;
+    color: #1f2a44;
+}
+
+.abrirchamado-ticket #itil-footer .main-actions .ac-pendencia:hover {
+    background-color: #ffd29a;
+}
+
+/* "Pedir aprovação": verde claro, no mesmo estilo da Pendência */
+.abrirchamado-ticket #itil-footer .main-actions .ac-aprovacao {
+    background-color: #d3f0dc;
+    border-color: #a9e0bb;
+    color: #1f2a44;
+}
+
+.abrirchamado-ticket #itil-footer .main-actions .ac-aprovacao:hover {
+    background-color: #b7e6c6;
+}
+
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-control-"] {
+    font-weight: 600;
+}
+
+/* Botão "Adicionar" das respostas: inteiro e separado (igual ao da solução) */
+.abrirchamado-ticket #new-itilobject-form .card-footer > .input-group {
+    gap: .75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.abrirchamado-ticket #new-itilobject-form .card-footer > .input-group > .btn,
+.abrirchamado-ticket #new-itilobject-form .card-footer > .input-group > [id^="pending-reasons-control-"] {
+    margin-left: 0 !important;
+    border-radius: var(--tblr-border-radius, 6px) !important;
+}
+
+/* Pendência: sem o botão de liga/desliga, só o motivo (a pendência já vem marcada) */
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-control-"] > span.d-inline-flex {
+    display: none !important;
+}
+
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-control-"] {
+    padding: .25rem .5rem !important;
+    background: #fff !important;
+    border: 1px solid #ffd29a;
+}
+
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-setup-"] {
+    padding-left: 0 !important;
+}
+
+/* Motivo da pendência com largura para ler o nome inteiro */
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-setup-"] .row > div:first-child {
+    flex: 0 0 100%;
+    max-width: 100%;
+    min-width: 300px;
+}
+
+.abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-setup-"] .select2-container {
+    width: 100% !important;
+    min-width: 260px;
+}
+
+/* Formulário aberto por "Pendência": laranja claro (como a solução fica azul claro) */
+.abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content {
+    background-color: #ffe3bf;
+    border-color: #ffd29a;
+}
+
+.abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content::before {
+    border-color: #ffd29a #ffd29a transparent transparent;
+}
+
+.abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content::after {
+    border-color: #ffe3bf #ffe3bf transparent transparent;
+}
+
+.abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content.t-right::before {
+    border-color: #ffd29a transparent transparent #ffd29a;
+}
+
+.abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content.t-right::after {
+    border-color: #ffe3bf transparent transparent #ffe3bf;
+}
+
+/* Tema escuro: calendário de data, barras de rolagem e listas nativas também escuros */
+[data-glpi-theme-dark="1"] {
+    color-scheme: dark;
+}
+
+/* Tema escuro: pendência em laranja translúcido (o laranja-claro fica berrante no escuro) */
+[data-glpi-theme-dark="1"].abrirchamado-ticket #itil-footer .main-actions .ac-pendencia {
+    background-color: rgba(247, 103, 7, .22);
+    border-color: rgba(247, 103, 7, .55);
+    color: #ffc9a3;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket #itil-footer .main-actions .ac-pendencia:hover {
+    background-color: rgba(247, 103, 7, .35);
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content {
+    background-color: #3a2e24;
+    border-color: #7a4a22;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content::before {
+    border-color: #7a4a22 #7a4a22 transparent transparent;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content::after {
+    border-color: #3a2e24 #3a2e24 transparent transparent;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content.t-right::before {
+    border-color: #7a4a22 transparent transparent #7a4a22;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .timeline-item.ac-modo-pendencia .timeline-content.t-right::after {
+    border-color: #3a2e24 transparent transparent #3a2e24;
+}
+
+[data-glpi-theme-dark="1"].abrirchamado-ticket .ac-modo-pendencia [id^="pending-reasons-control-"] {
+    background: var(--tblr-bg-surface, #232e3c) !important;
+    border-color: #7a4a22;
+}
+
+/*
+ * Cartões da página "Abrir Chamados" (catálogo): todos no mesmo padrão
+ * (ícone em quadrado + título + descrição), cada um com sua cor e ordem fixa.
+ * Usado pelos plugins abrirchamado (sala), chamadoti (telas) e pagamentos.
+ */
+.ac-catalogo-col {
+    order: -1;
+}
+
+.ac-catalogo-col .card {
+    border-left: 4px solid var(--ac-cartao-cor, #fdc300);
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.ac-catalogo-col .card:hover {
+    border-color: var(--ac-cartao-cor, #fdc300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ac-cartao-cor, #fdc300) 35%, transparent);
+    transform: translateY(-1px);
+}
+
+.ac-catalogo-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--ac-cartao-cor, #fdc300) 16%, transparent);
+    color: var(--ac-cartao-cor, #fdc300);
+    font-size: 2.8rem;
+}
+
+/* Link extra no cartão (ex.: "Ver minhas reservas"), por cima do link do cartão inteiro */
+.ac-catalogo-extra {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .5rem;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ac-cartao-cor, #fdc300);
+    background: color-mix(in srgb, var(--ac-cartao-cor, #fdc300) 14%, transparent);
+}
+
+.ac-catalogo-extra:hover {
+    text-decoration: none;
+    background: color-mix(in srgb, var(--ac-cartao-cor, #fdc300) 26%, transparent);
+}
+
+.ac-catalogo-col .card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.ac-cartao-azul { --ac-cartao-cor: #4299e1; }
+.ac-cartao-amarelo { --ac-cartao-cor: #f2b705; }
+.ac-cartao-roxo { --ac-cartao-cor: #ae3ec9; }
+.ac-cartao-verde { --ac-cartao-cor: #2fb344; }
+.ac-cartao-teal { --ac-cartao-cor: #0ca678; }
+.ac-cartao-laranja { --ac-cartao-cor: #f76707; }
+
+/* Tema escuro: tons mais claros para o ícone aparecer bem */
+[data-glpi-theme-dark="1"] .ac-cartao-azul { --ac-cartao-cor: #6aaae6; }
+[data-glpi-theme-dark="1"] .ac-cartao-amarelo { --ac-cartao-cor: #fdc300; }
+[data-glpi-theme-dark="1"] .ac-cartao-roxo { --ac-cartao-cor: #cf8be0; }
+[data-glpi-theme-dark="1"] .ac-cartao-verde { --ac-cartao-cor: #51c765; }

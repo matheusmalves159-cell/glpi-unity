@@ -1,0 +1,392 @@
+/* Tela "Chamado de TI" */
+.ct-tela .ct-tipo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .75rem;
+    height: 100%;
+    padding: .75rem 1rem;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 8px;
+    background: var(--tblr-bg-surface, #fff);
+    white-space: normal;
+}
+
+.ct-tela .ct-tipo:hover {
+    border-color: #fdc300;
+}
+
+.ct-tela .ct-tipo.ativo {
+    border-color: #fdc300;
+    background: #fff8dc;
+    box-shadow: 0 0 0 2px rgba(253, 195, 0, .45);
+}
+
+.ct-tela .ct-tipo-icone {
+    font-size: 1.75rem;
+    color: #1f2a44;
+    flex-shrink: 0;
+}
+
+.ct-tela .ct-tipo-nome {
+    display: block;
+    font-weight: 700;
+}
+
+.ct-tela .ct-tipo-texto {
+    display: block;
+    font-size: .8rem;
+    color: var(--tblr-secondary, #667382);
+}
+
+/* Busca */
+.ct-tela .ct-busca {
+    position: relative;
+}
+
+.ct-tela .ct-resultados {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    margin-top: .25rem;
+    border-radius: 8px;
+    background: var(--tblr-bg-surface, #fff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+    overflow: hidden;
+}
+
+.ct-tela .ct-resultados .list-group-item {
+    text-align: left;
+    background: var(--tblr-bg-surface, #fff);
+    padding: .6rem 1rem;
+}
+
+.ct-tela .ct-resultados .list-group-item-action:hover,
+.ct-tela .ct-resultados .list-group-item-action:focus {
+    background: #fff8dc;
+}
+
+/* Lista de opções abaixo do campo (cargo, "Copiar acesso de") */
+.ct-tela .ct-combo-pai {
+    position: relative;
+}
+
+.ct-tela .ct-combo-lista {
+    position: absolute;
+    z-index: 30;
+    margin-top: .2rem;
+    max-height: 260px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: var(--tblr-bg-surface, #fff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+
+.ct-tela .ct-combo-lista .list-group-item {
+    text-align: left;
+    padding: .45rem .9rem;
+    background: var(--tblr-bg-surface, #fff);
+}
+
+.ct-tela .ct-combo-lista .list-group-item-action:hover,
+.ct-tela .ct-combo-lista .list-group-item-action.active {
+    background: #fff8dc;
+    color: inherit;
+    border-color: var(--tblr-border-color, #dce1e7);
+}
+
+/* Opções de cada nível em botões */
+.ct-tela .ct-nivel-pergunta {
+    font-weight: 600;
+    margin-bottom: .4rem;
+}
+
+.ct-tela .ct-opcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.ct-tela .ct-opcao {
+    padding: .45rem .9rem;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 999px;
+    background: var(--tblr-bg-surface, #fff);
+    font-weight: 500;
+}
+
+.ct-tela .ct-opcao:hover {
+    border-color: #fdc300;
+}
+
+.ct-tela .ct-opcao.ativo {
+    border-color: #fdc300;
+    background: #fdc300;
+    color: #1f2a44;
+    font-weight: 700;
+}
+
+/* Escolha feita */
+.ct-tela .ct-escolha {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .75rem 1rem;
+    border-radius: 8px;
+    background: #e9f7ef;
+    color: #1d6b3a;
+}
+
+.ct-tela .ct-escolha > .ti {
+    font-size: 1.4rem;
+}
+
+.ct-tela .ct-extra + .ct-extra:not(.d-none) {
+    margin-top: 1rem;
+}
+
+/* Prioridade com os prazos de SLA */
+.ct-tela .ct-prioridade {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    height: 100%;
+    padding: .75rem;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-left-width: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.ct-tela .ct-prioridade input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ct-tela .ct-prioridade:has(input:checked) {
+    background: #fff8dc;
+    box-shadow: 0 0 0 2px rgba(253, 195, 0, .45);
+}
+
+.ct-tela .ct-prioridade:has(input:focus-visible) {
+    outline: 2px solid #1f2a44;
+}
+
+.ct-tela .ct-prioridade-nome {
+    font-weight: 700;
+}
+
+.ct-tela .ct-prioridade-texto {
+    font-size: .8rem;
+    color: var(--tblr-secondary, #667382);
+}
+
+.ct-tela .ct-prioridade-prazo {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding-top: .35rem;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.ct-tela .ct-cor-danger { border-left-color: #e8590c; }
+.ct-tela .ct-cor-orange { border-left-color: #ff922b; }
+.ct-tela .ct-cor-yellow { border-left-color: #fcc419; }
+.ct-tela .ct-cor-green { border-left-color: #2fb344; }
+.ct-tela .ct-cor-secondary { border-left-color: #9aa0ac; }
+
+/* Escolha do setor (Abrir chamado) */
+.ct-tela .ct-setor {
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 10px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ct-tela .ct-setor:hover {
+    border-color: #fdc300;
+    box-shadow: 0 0 0 2px rgba(253, 195, 0, .35);
+}
+
+.ct-tela .ct-setor-icone {
+    font-size: 2.4rem;
+    color: #1f2a44;
+}
+
+.ct-tela .ct-setor-nome {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.ct-tela .ct-setor-texto {
+    font-size: .85rem;
+    color: var(--tblr-secondary, #667382);
+}
+
+/* Cartões no Catálogo de serviços */
+.chamadoti-catalogo-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+    background: #fff8dc;
+    color: #1f2a44;
+    font-size: 3.2rem;
+}
+
+/* Central de telas */
+.ct-central .ct-cats td {
+    vertical-align: middle;
+}
+
+.ct-central .ct-extras summary {
+    cursor: pointer;
+    font-size: .85rem;
+    color: var(--tblr-primary, #1f2a44);
+    white-space: nowrap;
+}
+
+.ct-central .ct-extras[open] {
+    min-width: 280px;
+}
+
+/* Acessos (Administração > Acessos) */
+.ct-acessos .ct-areas {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+}
+
+.ct-acessos .ct-area {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .5rem .75rem;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.ct-acessos .ct-area:has(input[type="checkbox"]:checked) {
+    border-color: #fdc300;
+    background: rgba(253, 195, 0, .08);
+}
+
+.ct-acessos .ct-area-icone {
+    font-size: 1.35rem;
+    color: #f2b705;
+    flex-shrink: 0;
+    width: 1.6rem;
+    text-align: center;
+}
+
+.ct-acessos .ct-area-texto {
+    flex-grow: 1;
+    line-height: 1.25;
+}
+
+.ct-acessos .ct-area-texto small {
+    display: block;
+    color: var(--tblr-secondary-color, #667382);
+}
+
+.ct-acessos .ct-area .form-switch .form-check-input {
+    width: 2.4em;
+    height: 1.25em;
+    margin-left: 0;
+}
+
+/* Tema escuro: destaques amarelos translúcidos e ícones claros */
+[data-glpi-theme-dark="1"] .ct-tela .ct-tipo.ativo,
+[data-glpi-theme-dark="1"] .ct-tela .ct-prioridade:has(input:checked),
+[data-glpi-theme-dark="1"] .ct-tela .ct-resultados .list-group-item-action:hover,
+[data-glpi-theme-dark="1"] .ct-tela .ct-resultados .list-group-item-action:focus,
+[data-glpi-theme-dark="1"] .ct-tela .ct-combo-lista .list-group-item-action:hover,
+[data-glpi-theme-dark="1"] .ct-tela .ct-combo-lista .list-group-item-action.active {
+    background: rgba(253, 195, 0, .14);
+}
+
+[data-glpi-theme-dark="1"] .ct-tela .ct-tipo-icone,
+[data-glpi-theme-dark="1"] .ct-tela .ct-setor-icone {
+    color: #fdc300;
+}
+
+[data-glpi-theme-dark="1"] .ct-tela .ct-tipo-nome,
+[data-glpi-theme-dark="1"] .ct-tela .ct-setor-nome,
+[data-glpi-theme-dark="1"] .ct-tela .ct-prioridade-nome {
+    color: #e6ebf3;
+}
+
+[data-glpi-theme-dark="1"] .ct-tela .ct-escolha {
+    background: rgba(47, 179, 68, .16);
+    color: #8fdba0;
+}
+
+[data-glpi-theme-dark="1"] .ct-tela .ct-prioridade:has(input:focus-visible) {
+    outline-color: #fdc300;
+}
+
+[data-glpi-theme-dark="1"] .chamadoti-catalogo-icone {
+    background: rgba(253, 195, 0, .14);
+    color: #fdc300;
+}
+
+[data-glpi-theme-dark="1"] .ct-central .ct-extras summary {
+    color: #fdc300;
+}
+
+/* Central de telas: cores do cartão, construtor de campos próprios */
+.ct-central .ct-cor-opcao {
+    --ct-cor: #8a94a3;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .7rem;
+    border: 1px solid var(--tblr-border-color, #dce1e7);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: .85rem;
+}
+.ct-central .ct-cor-opcao::before {
+    content: "";
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    background: var(--ct-cor);
+}
+.ct-central .ct-cor-opcao input { position: absolute; opacity: 0; pointer-events: none; }
+.ct-central .ct-cor-opcao:has(input:checked) {
+    border-color: var(--ct-cor);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ct-cor) 35%, transparent);
+    font-weight: 600;
+}
+.ct-central .ct-cor-azul { --ct-cor: #4299e1; }
+.ct-central .ct-cor-amarelo { --ct-cor: #f2b705; }
+.ct-central .ct-cor-roxo { --ct-cor: #ae3ec9; }
+.ct-central .ct-cor-verde { --ct-cor: #2fb344; }
+.ct-central .ct-cor-teal { --ct-cor: #0ca678; }
+.ct-central .ct-cor-laranja { --ct-cor: #f76707; }
+
+.ct-central .ct-campos-det[open] { min-width: 560px; }
+.ct-central .ct-campos-det summary,
+.ct-central .ct-extras summary { cursor: pointer; }
+.ct-central .ct-campo-linha {
+    padding: .6rem;
+    margin: .5rem 0;
+    border: 1px dashed var(--tblr-border-color, #dce1e7);
+    border-radius: 8px;
+}
+.ct-central .ct-cor-bolinha {
+    display: inline-block;
+    width: .7rem;
+    height: .7rem;
+    border-radius: 50%;
+    margin-right: .35rem;
+    background: var(--ct-cor, #8a94a3);
+}

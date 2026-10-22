@@ -1,0 +1,674 @@
+/*
+ * Sem vermelho no GLPI: o "perigo/erro" do tema (danger/red) vira laranja-escuro
+ * e as regras do GLPI com vermelho fixo passam a usar a mesma cor.
+ * (As cores de prioridade e do prazo de SLA ficam nas configurações do GLPI.)
+ */
+:root,
+:root[data-glpi-theme],
+[data-bs-theme] {
+    --ac-alerta: #e8590c;
+    --ac-alerta-rgb: 232, 89, 12;
+    --ac-alerta-escuro: #c2410c;
+    --ac-alerta-fundo: rgba(232, 89, 12, .14);
+
+    --tblr-red: var(--ac-alerta);
+    --tblr-red-rgb: var(--ac-alerta-rgb);
+    --tblr-red-fg: #fff;
+    --tblr-red-darken: var(--ac-alerta-escuro);
+    --tblr-red-lt: var(--ac-alerta-fundo);
+    --tblr-red-lt-rgb: 251, 227, 212;
+    --tblr-red-200: #ffc9a8;
+    --tblr-danger: var(--ac-alerta);
+    --tblr-danger-rgb: var(--ac-alerta-rgb);
+    --tblr-danger-fg: #fff;
+    --tblr-danger-darken: var(--ac-alerta-escuro);
+    --tblr-danger-lt: var(--ac-alerta-fundo);
+    --tblr-danger-lt-rgb: 251, 227, 212;
+    --tblr-danger-200: #ffc9a8;
+    --tblr-danger-text-emphasis: var(--ac-alerta-escuro);
+    --tblr-danger-bg-subtle: var(--ac-alerta-fundo);
+    --tblr-danger-border-subtle: rgba(232, 89, 12, .45);
+    --tblr-form-invalid-color: var(--ac-alerta);
+    --tblr-form-invalid-border-color: var(--ac-alerta);
+    --glpi-form-header-danger-fg: var(--ac-alerta);
+    --glpi-form-header-danger-bg: var(--ac-alerta-fundo);
+    --glpi-form-header-danger-border-color: rgba(232, 89, 12, .45);
+}
+
+/*
+ * Tema escuro: variáveis que o tema escuro do GLPI deixa com valores do tema claro
+ * (texto de ajuda dos campos, textos secundários, alertas, fundos secundários).
+ * Com elas o texto ficava quase preto sobre o fundo escuro e "sumia".
+ */
+[data-glpi-theme-dark="1"],
+[data-glpi-theme-dark="1"] body {
+    --tblr-secondary-color: rgba(200, 209, 224, .75);
+    --tblr-tertiary-color: rgba(200, 209, 224, .5);
+    --tblr-emphasis-color: #e6ebf3;
+    --tblr-highlight-color: #1a2230;
+    --tblr-highlight-bg: #fdc300;
+    --tblr-secondary-bg: #2c3a4b;
+    --tblr-tertiary-bg: #283445;
+
+    --tblr-primary-text-emphasis: #ffe3a3;
+    --tblr-secondary-text-emphasis: #d0d7e4;
+    --tblr-success-text-emphasis: #8fdba0;
+    --tblr-info-text-emphasis: #a9c4ea;
+    --tblr-warning-text-emphasis: #ffd27a;
+    --tblr-danger-text-emphasis: #ffb07a;
+    --tblr-light-text-emphasis: #e6ebf3;
+    --tblr-dark-text-emphasis: #e6ebf3;
+
+    --tblr-primary-bg-subtle: rgba(254, 201, 92, .14);
+    --tblr-secondary-bg-subtle: rgba(176, 187, 212, .12);
+    --tblr-success-bg-subtle: rgba(47, 179, 68, .16);
+    --tblr-info-bg-subtle: rgba(88, 133, 192, .18);
+    --tblr-warning-bg-subtle: rgba(245, 159, 0, .16);
+    --tblr-danger-bg-subtle: rgba(232, 89, 12, .16);
+    --tblr-light-bg-subtle: rgba(255, 255, 255, .06);
+    --tblr-dark-bg-subtle: rgba(0, 0, 0, .25);
+
+    --tblr-primary-border-subtle: rgba(254, 201, 92, .4);
+    --tblr-secondary-border-subtle: rgba(176, 187, 212, .3);
+    --tblr-success-border-subtle: rgba(47, 179, 68, .4);
+    --tblr-info-border-subtle: rgba(88, 133, 192, .45);
+    --tblr-warning-border-subtle: rgba(245, 159, 0, .4);
+    --tblr-danger-border-subtle: rgba(232, 89, 12, .45);
+    --tblr-light-border-subtle: rgba(255, 255, 255, .12);
+    --tblr-dark-border-subtle: rgba(0, 0, 0, .4);
+}
+
+/*
+ * Maiúsculas nas palavras do GLPI: feito em js/maiusculas.js (o CSS não consegue
+ * deixar "o", "a", "e", "que", "do"... em minúsculo).
+ */
+
+/*
+ * Avatares com iniciais: o GLPI sorteia uma cor por pessoa (algumas saíam vermelhas).
+ * Todos na cor da marca; quem tem foto continua com a foto por cima.
+ */
+span.avatar {
+    background-color: #fff3c4 !important;
+    color: #1f2a44 !important;
+}
+
+[data-glpi-theme-dark="1"] span.avatar {
+    background-color: rgba(253, 195, 0, .2) !important;
+    color: #ffe08a !important;
+}
+
+/* Paginação: "..." legível */
+.page-item.disabled .page-link {
+    color: var(--tblr-secondary-color) !important;
+}
+
+/* Tema escuro: abas não selecionadas ficavam quase da cor do fundo */
+[data-glpi-theme-dark="1"] .nav-tabs .nav-link:not(.active),
+[data-glpi-theme-dark="1"] .nav-tabs .nav-link.disabled {
+    --tblr-nav-link-color: var(--tblr-secondary-color);
+    color: var(--tblr-secondary-color);
+}
+
+[data-glpi-theme-dark="1"] .nav-tabs .nav-link:not(.active):hover {
+    color: var(--tblr-emphasis-color);
+}
+
+/* Chamado (tema escuro): "Pendência" e "Adicionar solução" têm fundo escuro próprio */
+[data-glpi-theme-dark="1"] #itil-footer .main-actions .btn.ac-pendencia {
+    color: #ffc9a3 !important;
+}
+
+[data-glpi-theme-dark="1"] #itil-footer .main-actions .btn.action-solution {
+    color: #a9dbe8 !important;
+}
+
+[data-glpi-theme-dark="1"] #itil-footer .main-actions .btn.ac-aprovacao {
+    background-color: rgba(47, 179, 68, .2);
+    border-color: rgba(47, 179, 68, .5);
+    color: #a6e3b4 !important;
+}
+
+[data-glpi-theme-dark="1"] #itil-footer .main-actions .btn.ac-aprovacao:hover {
+    background-color: rgba(47, 179, 68, .32);
+}
+/* Itens desativados (ex.: "..." da paginação) não ficam vermelhos */
+#page .disabled:not(.list-group-item):not(.btn),
+.qtip .disabled:not(.list-group-item):not(.btn),
+.modal .modal-body .disabled:not(.list-group-item):not(.btn) {
+    color: var(--tblr-secondary-color) !important;
+}
+
+/* Botão desativado: mantém a cor de texto do próprio botão (o GLPI pintava de vermelho) */
+[data-glpi-theme] #page .btn.disabled,
+[data-glpi-theme] .qtip .btn.disabled,
+[data-glpi-theme] .modal .modal-body .btn.disabled {
+    color: var(--tblr-btn-disabled-color, var(--tblr-btn-color)) !important;
+}
+
+/* Campos obrigatórios (asterisco) e textos de erro */
+.col-form-label.required::after,
+.form-label.required::after,
+.form-check-label.required::after,
+#page span.required, .qtip span.required, .modal .modal-body span.required,
+#page .red, .qtip .red, .modal .modal-body .red,
+#page .error, .qtip .error, .modal .modal-body .error,
+#page .error a, .qtip .error a, .modal .modal-body .error a,
+#page .kb i.not-published, .qtip .kb i.not-published, .modal .modal-body .kb i.not-published,
+#page td.diff del, .qtip td.diff del, .modal .modal-body td.diff del,
+#page .copy_to_clipboard_wrapper.copyfail::after,
+.link-danger:hover, .link-danger:focus, .link-red:hover, .link-red:focus,
+span.fancytree-node.fancytree-error span.fancytree-title,
+.rateit .rateit-selected,
+.dashboard .grid-stack .grid-stack-item .grid-stack-item-content .debug-card {
+    color: var(--ac-alerta) !important;
+}
+
+textarea:not(.form-control):required:not(:valid),
+input:not(.submit):not([type="checkbox"]):not([type="radio"]):required:not(:valid),
+#page .tox-tinymce.required,
+.form-renderer [data-glpi-form-renderer-question] .is-invalid + button,
+.form-control.warn, .form-control.expired, .form-control.soon_expired,
+.sortable-placeholder.invalid-position,
+.sp-input.sp-validation-error {
+    border-color: var(--ac-alerta) !important;
+}
+
+.form-control.warn, .form-control.expired,
+#page .fail_info, .qtip .fail_info, .modal .modal-body .fail_info,
+.dashboard .grid-stack .grid-stack-item .card-error,
+.navbar-nav.user-menu .bg-red-lt {
+    background-color: var(--ac-alerta-fundo) !important;
+}
+
+div.banner-impersonate,
+.notavailable,
+.netport td.red,
+.qtip-red .qtip-titlebar {
+    background-color: var(--ac-alerta) !important;
+}
+
+.qtip-red, .qtip-red .qtip-icon {
+    border-color: var(--ac-alerta) !important;
+}
+
+/* Prazos vencidos (linha do tempo de datas do chamado) */
+.dates_timelines .passed time,
+.dates_timelines .passed label,
+.dates_timelines .passed .dot,
+.dates_timelines .passed .dot::before {
+    color: var(--ac-alerta) !important;
+    border-color: var(--ac-alerta) !important;
+}
+
+/* Aprovação recusada / solução recusada na linha do tempo */
+.timeline-item.ITILValidation .timeline-content.refused,
+.timeline-item.ITILSolution .timeline-content.refused {
+    border-left-color: var(--ac-alerta) !important;
+}
+
+/* Planejamento: linha do "agora" */
+.fc .fc-now-indicator,
+.fc-now-indicator {
+    border-color: var(--ac-alerta) !important;
+}
+
+/* Calendário (seta ao passar o mouse) */
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: var(--ac-alerta) !important;
+}
+
+/* Editor de texto: avisos de erro */
+.tox .tox-form__group--error,
+.tox .tox-notification--error a {
+    color: var(--ac-alerta) !important;
+}
+
+.tox .tox-control-wrap__status-icon-invalid svg,
+.tox .tox-control-wrap__status-icon-invalid {
+    fill: var(--ac-alerta) !important;
+}
+
+/*
+ * Tema escuro: texto legível nos botões e etiquetas coloridos.
+ * O tema escuro do GLPI deixa o texto cinza do corpo sobre botões verdes, amarelos,
+ * azuis... (as palavras somem). Cada cor recebe texto branco ou escuro, o que tiver
+ * mais contraste, e os tons escuros (azul, roxo, rosa...) ficam mais claros quando são
+ * usados como texto sobre o fundo escuro.
+ */
+[data-glpi-theme-dark="1"] .btn-primary,
+[data-glpi-theme-dark="1"] .btn-primary:hover,
+[data-glpi-theme-dark="1"] .btn-primary:focus,
+[data-glpi-theme-dark="1"] .btn-primary:active,
+[data-glpi-theme-dark="1"] .btn-outline-primary:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-primary:hover,
+[data-glpi-theme-dark="1"] .badge.bg-primary,
+[data-glpi-theme-dark="1"] .bg-primary:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-secondary,
+[data-glpi-theme-dark="1"] .btn-secondary:hover,
+[data-glpi-theme-dark="1"] .btn-secondary:focus,
+[data-glpi-theme-dark="1"] .btn-secondary:active,
+[data-glpi-theme-dark="1"] .btn-outline-secondary:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-secondary:hover,
+[data-glpi-theme-dark="1"] .badge.bg-secondary,
+[data-glpi-theme-dark="1"] .bg-secondary:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-success,
+[data-glpi-theme-dark="1"] .btn-success:hover,
+[data-glpi-theme-dark="1"] .btn-success:focus,
+[data-glpi-theme-dark="1"] .btn-success:active,
+[data-glpi-theme-dark="1"] .btn-outline-success:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-success:hover,
+[data-glpi-theme-dark="1"] .badge.bg-success,
+[data-glpi-theme-dark="1"] .bg-success:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-info,
+[data-glpi-theme-dark="1"] .btn-info:hover,
+[data-glpi-theme-dark="1"] .btn-info:focus,
+[data-glpi-theme-dark="1"] .btn-info:active,
+[data-glpi-theme-dark="1"] .btn-outline-info:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-info:hover,
+[data-glpi-theme-dark="1"] .badge.bg-info,
+[data-glpi-theme-dark="1"] .bg-info:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-warning,
+[data-glpi-theme-dark="1"] .btn-warning:hover,
+[data-glpi-theme-dark="1"] .btn-warning:focus,
+[data-glpi-theme-dark="1"] .btn-warning:active,
+[data-glpi-theme-dark="1"] .btn-outline-warning:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-warning:hover,
+[data-glpi-theme-dark="1"] .badge.bg-warning,
+[data-glpi-theme-dark="1"] .bg-warning:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-danger,
+[data-glpi-theme-dark="1"] .btn-danger:hover,
+[data-glpi-theme-dark="1"] .btn-danger:focus,
+[data-glpi-theme-dark="1"] .btn-danger:active,
+[data-glpi-theme-dark="1"] .btn-outline-danger:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-danger:hover,
+[data-glpi-theme-dark="1"] .badge.bg-danger,
+[data-glpi-theme-dark="1"] .bg-danger:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-dark,
+[data-glpi-theme-dark="1"] .btn-dark:hover,
+[data-glpi-theme-dark="1"] .btn-dark:focus,
+[data-glpi-theme-dark="1"] .btn-dark:active,
+[data-glpi-theme-dark="1"] .btn-outline-dark:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-dark:hover,
+[data-glpi-theme-dark="1"] .badge.bg-dark,
+[data-glpi-theme-dark="1"] .bg-dark:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-green,
+[data-glpi-theme-dark="1"] .btn-green:hover,
+[data-glpi-theme-dark="1"] .btn-green:focus,
+[data-glpi-theme-dark="1"] .btn-green:active,
+[data-glpi-theme-dark="1"] .btn-outline-green:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-green:hover,
+[data-glpi-theme-dark="1"] .badge.bg-green,
+[data-glpi-theme-dark="1"] .bg-green:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-blue,
+[data-glpi-theme-dark="1"] .btn-blue:hover,
+[data-glpi-theme-dark="1"] .btn-blue:focus,
+[data-glpi-theme-dark="1"] .btn-blue:active,
+[data-glpi-theme-dark="1"] .btn-outline-blue:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-blue:hover,
+[data-glpi-theme-dark="1"] .badge.bg-blue,
+[data-glpi-theme-dark="1"] .bg-blue:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-azure,
+[data-glpi-theme-dark="1"] .btn-azure:hover,
+[data-glpi-theme-dark="1"] .btn-azure:focus,
+[data-glpi-theme-dark="1"] .btn-azure:active,
+[data-glpi-theme-dark="1"] .btn-outline-azure:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-azure:hover,
+[data-glpi-theme-dark="1"] .badge.bg-azure,
+[data-glpi-theme-dark="1"] .bg-azure:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-indigo,
+[data-glpi-theme-dark="1"] .btn-indigo:hover,
+[data-glpi-theme-dark="1"] .btn-indigo:focus,
+[data-glpi-theme-dark="1"] .btn-indigo:active,
+[data-glpi-theme-dark="1"] .btn-outline-indigo:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-indigo:hover,
+[data-glpi-theme-dark="1"] .badge.bg-indigo,
+[data-glpi-theme-dark="1"] .bg-indigo:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-purple,
+[data-glpi-theme-dark="1"] .btn-purple:hover,
+[data-glpi-theme-dark="1"] .btn-purple:focus,
+[data-glpi-theme-dark="1"] .btn-purple:active,
+[data-glpi-theme-dark="1"] .btn-outline-purple:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-purple:hover,
+[data-glpi-theme-dark="1"] .badge.bg-purple,
+[data-glpi-theme-dark="1"] .bg-purple:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-pink,
+[data-glpi-theme-dark="1"] .btn-pink:hover,
+[data-glpi-theme-dark="1"] .btn-pink:focus,
+[data-glpi-theme-dark="1"] .btn-pink:active,
+[data-glpi-theme-dark="1"] .btn-outline-pink:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-pink:hover,
+[data-glpi-theme-dark="1"] .badge.bg-pink,
+[data-glpi-theme-dark="1"] .bg-pink:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-red,
+[data-glpi-theme-dark="1"] .btn-red:hover,
+[data-glpi-theme-dark="1"] .btn-red:focus,
+[data-glpi-theme-dark="1"] .btn-red:active,
+[data-glpi-theme-dark="1"] .btn-outline-red:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-red:hover,
+[data-glpi-theme-dark="1"] .badge.bg-red,
+[data-glpi-theme-dark="1"] .bg-red:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-orange,
+[data-glpi-theme-dark="1"] .btn-orange:hover,
+[data-glpi-theme-dark="1"] .btn-orange:focus,
+[data-glpi-theme-dark="1"] .btn-orange:active,
+[data-glpi-theme-dark="1"] .btn-outline-orange:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-orange:hover,
+[data-glpi-theme-dark="1"] .badge.bg-orange,
+[data-glpi-theme-dark="1"] .bg-orange:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-yellow,
+[data-glpi-theme-dark="1"] .btn-yellow:hover,
+[data-glpi-theme-dark="1"] .btn-yellow:focus,
+[data-glpi-theme-dark="1"] .btn-yellow:active,
+[data-glpi-theme-dark="1"] .btn-outline-yellow:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-yellow:hover,
+[data-glpi-theme-dark="1"] .badge.bg-yellow,
+[data-glpi-theme-dark="1"] .bg-yellow:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-lime,
+[data-glpi-theme-dark="1"] .btn-lime:hover,
+[data-glpi-theme-dark="1"] .btn-lime:focus,
+[data-glpi-theme-dark="1"] .btn-lime:active,
+[data-glpi-theme-dark="1"] .btn-outline-lime:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-lime:hover,
+[data-glpi-theme-dark="1"] .badge.bg-lime,
+[data-glpi-theme-dark="1"] .bg-lime:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-teal,
+[data-glpi-theme-dark="1"] .btn-teal:hover,
+[data-glpi-theme-dark="1"] .btn-teal:focus,
+[data-glpi-theme-dark="1"] .btn-teal:active,
+[data-glpi-theme-dark="1"] .btn-outline-teal:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-teal:hover,
+[data-glpi-theme-dark="1"] .badge.bg-teal,
+[data-glpi-theme-dark="1"] .bg-teal:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-cyan,
+[data-glpi-theme-dark="1"] .btn-cyan:hover,
+[data-glpi-theme-dark="1"] .btn-cyan:focus,
+[data-glpi-theme-dark="1"] .btn-cyan:active,
+[data-glpi-theme-dark="1"] .btn-outline-cyan:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-cyan:hover,
+[data-glpi-theme-dark="1"] .badge.bg-cyan,
+[data-glpi-theme-dark="1"] .bg-cyan:not(.progress-bar) {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-muted,
+[data-glpi-theme-dark="1"] .btn-muted:hover,
+[data-glpi-theme-dark="1"] .btn-muted:focus,
+[data-glpi-theme-dark="1"] .btn-muted:active,
+[data-glpi-theme-dark="1"] .btn-outline-muted:hover,
+[data-glpi-theme-dark="1"] .btn-ghost-muted:hover,
+[data-glpi-theme-dark="1"] .badge.bg-muted,
+[data-glpi-theme-dark="1"] .bg-muted:not(.progress-bar) {
+    --tblr-btn-color: #ffffff;
+    --tblr-btn-hover-color: #ffffff;
+    --tblr-btn-active-color: #ffffff;
+    color: #ffffff !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-info:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-info:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-info-lt,
+[data-glpi-theme-dark="1"] .bg-info-lt,
+[data-glpi-theme-dark="1"] .text-info {
+    --tblr-btn-color: #7197c9;
+    color: #7197c9 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-danger:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-danger:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-danger-lt,
+[data-glpi-theme-dark="1"] .bg-danger-lt,
+[data-glpi-theme-dark="1"] .text-danger {
+    --tblr-btn-color: #eb7230;
+    color: #eb7230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-red:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-red:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-red-lt,
+[data-glpi-theme-dark="1"] .bg-red-lt,
+[data-glpi-theme-dark="1"] .text-red {
+    --tblr-btn-color: #eb7230;
+    color: #eb7230 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-dark:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-dark:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-dark-lt,
+[data-glpi-theme-dark="1"] .bg-dark-lt,
+[data-glpi-theme-dark="1"] .text-dark {
+    --tblr-btn-color: #c8d1e0;
+    color: #c8d1e0 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-blue:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-blue:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-blue-lt,
+[data-glpi-theme-dark="1"] .bg-blue-lt,
+[data-glpi-theme-dark="1"] .text-blue {
+    --tblr-btn-color: #6aaae6;
+    color: #6aaae6 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-indigo:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-indigo:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-indigo-lt,
+[data-glpi-theme-dark="1"] .bg-indigo-lt,
+[data-glpi-theme-dark="1"] .text-indigo {
+    --tblr-btn-color: #8da1f3;
+    color: #8da1f3 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-purple:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-purple:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-purple-lt,
+[data-glpi-theme-dark="1"] .bg-purple-lt,
+[data-glpi-theme-dark="1"] .text-purple {
+    --tblr-btn-color: #cf8be0;
+    color: #cf8be0 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-pink:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-pink:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-pink-lt,
+[data-glpi-theme-dark="1"] .bg-pink-lt,
+[data-glpi-theme-dark="1"] .text-pink {
+    --tblr-btn-color: #e98aac;
+    color: #e98aac !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-teal:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-teal:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-teal-lt,
+[data-glpi-theme-dark="1"] .bg-teal-lt,
+[data-glpi-theme-dark="1"] .text-teal {
+    --tblr-btn-color: #2fc292;
+    color: #2fc292 !important;
+}
+
+[data-glpi-theme-dark="1"] .btn-outline-muted:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .btn-ghost-muted:not(:hover):not(:active),
+[data-glpi-theme-dark="1"] .badge.bg-muted-lt,
+[data-glpi-theme-dark="1"] .bg-muted-lt,
+[data-glpi-theme-dark="1"] .text-muted {
+    --tblr-btn-color: #a3a9b8;
+    color: #a3a9b8 !important;
+}
+
+[data-glpi-theme-dark="1"] .badge.bg-dark-lt,
+[data-glpi-theme-dark="1"] .bg-dark-lt {
+    background-color: rgba(255, 255, 255, .08) !important;
+}
+
+/* Tema claro também: botões/etiquetas de cores claras com texto escuro (branco ficava fraco) */
+[data-glpi-theme] .btn-success,
+[data-glpi-theme] .btn-success:hover,
+[data-glpi-theme] .btn-success:focus,
+[data-glpi-theme] .btn-success:active,
+[data-glpi-theme] .badge.bg-success,
+[data-glpi-theme] .btn-green,
+[data-glpi-theme] .btn-green:hover,
+[data-glpi-theme] .btn-green:focus,
+[data-glpi-theme] .btn-green:active,
+[data-glpi-theme] .badge.bg-green,
+[data-glpi-theme] .btn-warning,
+[data-glpi-theme] .btn-warning:hover,
+[data-glpi-theme] .btn-warning:focus,
+[data-glpi-theme] .btn-warning:active,
+[data-glpi-theme] .badge.bg-warning,
+[data-glpi-theme] .btn-yellow,
+[data-glpi-theme] .btn-yellow:hover,
+[data-glpi-theme] .btn-yellow:focus,
+[data-glpi-theme] .btn-yellow:active,
+[data-glpi-theme] .badge.bg-yellow,
+[data-glpi-theme] .btn-lime,
+[data-glpi-theme] .btn-lime:hover,
+[data-glpi-theme] .btn-lime:focus,
+[data-glpi-theme] .btn-lime:active,
+[data-glpi-theme] .badge.bg-lime,
+[data-glpi-theme] .btn-teal,
+[data-glpi-theme] .btn-teal:hover,
+[data-glpi-theme] .btn-teal:focus,
+[data-glpi-theme] .btn-teal:active,
+[data-glpi-theme] .badge.bg-teal,
+[data-glpi-theme] .btn-cyan,
+[data-glpi-theme] .btn-cyan:hover,
+[data-glpi-theme] .btn-cyan:focus,
+[data-glpi-theme] .btn-cyan:active,
+[data-glpi-theme] .badge.bg-cyan,
+[data-glpi-theme] .btn-azure,
+[data-glpi-theme] .btn-azure:hover,
+[data-glpi-theme] .btn-azure:focus,
+[data-glpi-theme] .btn-azure:active,
+[data-glpi-theme] .badge.bg-azure,
+[data-glpi-theme] .btn-orange,
+[data-glpi-theme] .btn-orange:hover,
+[data-glpi-theme] .btn-orange:focus,
+[data-glpi-theme] .btn-orange:active,
+[data-glpi-theme] .badge.bg-orange,
+[data-glpi-theme] .btn-danger,
+[data-glpi-theme] .btn-danger:hover,
+[data-glpi-theme] .btn-danger:focus,
+[data-glpi-theme] .btn-danger:active,
+[data-glpi-theme] .badge.bg-danger,
+[data-glpi-theme] .btn-red,
+[data-glpi-theme] .btn-red:hover,
+[data-glpi-theme] .btn-red:focus,
+[data-glpi-theme] .btn-red:active,
+[data-glpi-theme] .badge.bg-red {
+    --tblr-btn-color: #1a2230;
+    --tblr-btn-hover-color: #1a2230;
+    --tblr-btn-active-color: #1a2230;
+    color: #1a2230 !important;
+}

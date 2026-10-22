@@ -1,0 +1,92 @@
+<div class="container-fluid ct-central" style="max-width: 1200px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-layout-dashboard"></i> Central de telas</h2>
+        <a class="btn btn-outline-secondary" href="{{ path('/ServiceCatalog') }}" target="_blank">
+            <i class="ti ti-eye"></i><span>Ver como o usuário vê</span>
+        </a>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        {% for chave, a in abas %}
+            <li class="nav-item">
+                <a class="nav-link {{ chave == aba ? 'active' }}" href="{{ path('/plugins/chamadoti/front/central.php') }}?aba={{ chave }}">
+                    <i class="{{ a[1] }} me-1"></i>{{ a[0] }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if aba == 'telas' %}
+        <div class="alert alert-info">
+            <div>
+                Cada tela é um setor que recebe chamados (TI, Administrativo…). Para levar o atendimento a um novo setor:
+                crie a categoria do setor com as subcategorias, depois clique em <strong>Nova tela</strong>, escolha a categoria e o grupo que atende.
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">Telas de chamado</h3>
+                <a class="btn btn-primary" href="{{ path('/plugins/chamadoti/front/tela.form.php') }}"><i class="ti ti-plus"></i><span>Nova tela</span></a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead><tr><th>Ordem</th><th>Tela</th><th>Categoria</th><th>Grupo que atende</th><th>Situação</th><th class="text-end">Ações</th></tr></thead>
+                    <tbody>
+                        {% for t in telas %}
+                            <tr>
+                                <td>{{ t.ordem }}</td>
+                                <td>
+                                    <i class="{{ t.icone }} me-1"></i><strong>{{ t.titulo }}</strong>
+                                    {% if t.cor %}<span class="ct-cor-bolinha ct-cor-{{ t.cor }} ms-1" title="Cor do cartão: {{ t.cor }}"></span>{% endif %}
+                                    {% if t.restrita %}<span class="badge bg-azure-lt ms-1" title="Só os grupos escolhidos veem esta tela"><i class="ti ti-lock"></i> restrita</span>{% endif %}
+                                    <div class="text-muted small">{{ t.descricao }}</div>
+                                </td>
+                                <td>{{ t.categoria }}</td>
+                                <td>{{ t.grupo }}</td>
+                                <td><span class="badge {{ t.is_active ? 'bg-green-lt' : 'bg-secondary-lt' }}">{{ t.is_active ? 'Ativa' : 'Desativada' }}</span></td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('/plugins/chamadoti/front/abrir.php') }}?tela={{ t.id }}" target="_blank"><i class="ti ti-eye"></i><span>Ver</span></a>
+                                    <form method="post" action="{{ path('/plugins/chamadoti/front/tela.form.php') }}" class="d-inline">
+                                        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="id" value="{{ t.id }}">
+                                        <button type="submit" name="duplicar" value="1" class="btn btn-sm btn-outline-secondary" title="Criar uma cópia desativada"><i class="ti ti-copy"></i><span>Duplicar</span></button>
+                                    </form>
+                                    <a class="btn btn-sm btn-primary" href="{{ path('/plugins/chamadoti/front/tela.form.php') }}?id={{ t.id }}"><i class="ti ti-pencil"></i><span>Editar</span></a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="6" class="text-muted">Nenhuma tela ainda.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    {% elseif aba == 'pagamentos' %}
+        {{ include('@pagamentos/config.html.twig', pagamentos) }}
+
+    {% elseif aba == 'salas' %}
+        {{ include('@salasreuniao/config.html.twig', salas) }}
+
+    {% elseif aba == 'listas' %}
+        <form method="post" action="{{ path('/plugins/chamadoti/front/central.php') }}?aba=listas">
+            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Opções dos campos das telas (uma por linha)</h3></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for nome, l in listas %}
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="ct-lista-{{ nome }}">{{ l.rotulo }}</label>
+                                <textarea class="form-control" id="ct-lista-{{ nome }}" name="{{ nome }}" rows="8">{{ l.valor }}</textarea>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" name="salvar_listas" value="1" class="btn btn-primary"><i class="ti ti-device-floppy"></i><span>Salvar listas</span></button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+</div>

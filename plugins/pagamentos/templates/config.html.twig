@@ -1,0 +1,92 @@
+<div class="container-fluid" style="max-width: 900px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-settings"></i> Pagamentos — configuração</h2>
+        <a class="btn btn-outline-secondary" href="{{ path('/plugins/pagamentos/front/planilha.php') }}">
+            <i class="ti ti-file-spreadsheet"></i><span>Planilha de Pagamentos</span>
+        </a>
+    </div>
+
+    <form method="post" action="{{ path('/plugins/pagamentos/front/config.form.php') }}">
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Solicitação de pagamento</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="pg-aviso">Aviso no topo da tela</label>
+                        <textarea class="form-control" id="pg-aviso" name="aviso" rows="4">{{ aviso }}</textarea>
+                        <div class="form-text">Uma linha por parágrafo. Coloque entre **asteriscos duplos** para deixar em <strong>negrito</strong>. Em branco = sem aviso.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pg-grupo">Chamado atribuído ao grupo</label>
+                        <select class="form-select" id="pg-grupo" name="groups_id_assign">
+                            <option value="0">— Nenhum —</option>
+                            {% for id, nome in grupos %}
+                                <option value="{{ id }}" {{ id == groups_id_assign ? 'selected' }}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pg-categoria">Categoria do chamado</label>
+                        <select class="form-select" id="pg-categoria" name="itilcategories_id">
+                            <option value="0">— Nenhuma —</option>
+                            {% for id, nome in categorias %}
+                                <option value="{{ id }}" {{ id == itilcategories_id ? 'selected' }}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pg-setores">Setores (um por linha)</label>
+                        <textarea class="form-control" id="pg-setores" name="setores" rows="10">{{ setores }}</textarea>
+                        <div class="form-text">Aparecem em "Setor solicitante" e no filtro da planilha.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="pg-locais">Locais da despesa (um por linha)</label>
+                        <textarea class="form-control" id="pg-locais" name="locais" rows="10">{{ locais }}</textarea>
+                        <div class="form-text">Aparecem em "Local referência da despesa".</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="pg-solicitantes">Quem pode solicitar pagamento</label>
+                        <select class="form-select" id="pg-solicitantes" name="request_groups_ids[]" multiple size="6">
+                            {% for id, nome in grupos %}
+                                <option value="{{ id }}" {{ id in request_groups_ids ? 'selected' }}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Nenhum selecionado = todos os usuários. Use Ctrl para escolher mais de um.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Planilha de Pagamentos (Financeiro)</h3></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label" for="pg-grupos">Quem pode gerar a planilha</label>
+                    <select class="form-select" id="pg-grupos" name="groups_ids[]" multiple size="6">
+                        {% for id, nome in grupos %}
+                            <option value="{{ id }}" {{ id in groups_ids ? 'selected' }}>{{ nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Membros desses grupos veem "Planilha de Pagamentos" em Ferramentas. Administradores sempre veem.</div>
+                </div>
+                <div>
+                    <label class="form-label" for="pg-forms">Formulários antigos do GLPI que também entram na planilha</label>
+                    <select class="form-select" id="pg-forms" name="forms_ids[]" multiple size="6">
+                        {% for id, nome in formularios %}
+                            <option value="{{ id }}" {{ id in forms_ids ? 'selected' }}>{{ nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Para não perder o histórico de pedidos feitos antes da tela de solicitação.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mb-4">
+            <button type="submit" name="update" value="1" class="btn btn-primary">
+                <i class="ti ti-device-floppy"></i><span>Salvar</span>
+            </button>
+        </div>
+    </form>
+</div>

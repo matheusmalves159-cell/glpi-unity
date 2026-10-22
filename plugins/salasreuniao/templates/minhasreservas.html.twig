@@ -1,0 +1,37 @@
+<div class="container-fluid sr-lista" style="max-width: 1150px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-list-check"></i> Minhas Reservas de Sala</h2>
+        <div class="d-flex flex-wrap gap-2">
+            {% if admin %}
+                <a class="btn btn-outline-secondary" href="{{ path('/plugins/salasreuniao/front/reservasempresa.php') }}">
+                    <i class="ti ti-building"></i><span>Reservas da Empresa</span>
+                </a>
+            {% endif %}
+            <a class="btn btn-primary" href="{{ path('/plugins/salasreuniao/front/agendar.php') }}">
+                <i class="ti ti-plus"></i><span>Agendar Sala</span>
+            </a>
+        </div>
+    </div>
+
+    {# Filtro simples: uma aba por situação, com a quantidade #}
+    <div class="sr-abas d-flex flex-wrap gap-2 mb-3" role="tablist" aria-label="Filtrar minhas reservas">
+        {% for chave, v in visoes %}
+            <a class="btn {{ chave == visao ? 'btn-primary' : 'btn-outline-secondary' }}" role="tab" aria-selected="{{ chave == visao ? 'true' : 'false' }}"
+               href="{{ path('/plugins/salasreuniao/front/minhasreservas.php') }}?ver={{ chave }}">
+                <i class="{{ v[1] }}"></i><span>{{ v[0] }}</span>
+                <span class="badge {{ chave == visao ? 'bg-dark text-white' : 'bg-secondary-lt' }} ms-1">{{ contagem[chave] }}</span>
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if reservas is empty %}
+        <div class="card"><div class="card-body text-muted">
+            {% if visao == 'proximas' %}Você não tem reservas marcadas.
+            {% elseif visao == 'passadas' %}Nenhuma reunião sua já aconteceu.
+            {% elseif visao == 'canceladas' %}Nenhuma reserva cancelada.
+            {% else %}Você ainda não reservou nenhuma sala.{% endif %}
+        </div></div>
+    {% else %}
+        {{ include('@salasreuniao/reservas_tabela.html.twig', {reservas: reservas, mostrar_quem: false}) }}
+    {% endif %}
+</div>

@@ -1,0 +1,116 @@
+<div class="container-fluid sr-lista" style="max-width: 1300px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-building"></i> Reservas de Sala da Empresa</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" href="{{ path('/plugins/salasreuniao/front/minhasreservas.php') }}">
+                <i class="ti ti-user"></i><span>Minhas Reservas</span>
+            </a>
+            <a class="btn btn-primary" href="{{ path('/plugins/salasreuniao/front/agendar.php') }}">
+                <i class="ti ti-plus"></i><span>Agendar Sala</span>
+            </a>
+        </div>
+    </div>
+
+    {# Filtros detalhados #}
+    <form method="get" action="{{ path('/plugins/salasreuniao/front/reservasempresa.php') }}" class="card mb-3" id="sr-filtros">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center gap-1 mb-3" id="sr-atalhos">
+                <span class="text-muted me-1">Período:</span>
+                {% for chave, rotulo in {'hoje': 'Hoje', 'amanha': 'Amanhã', 'semana': 'Esta semana', 'prox7': 'Próximos 7 dias', 'mes': 'Este mês', 'mes_passado': 'Mês passado', 'futuras': 'De hoje em diante', 'tudo': 'Tudo'} %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="{{ chave }}">{{ rotulo }}</button>
+                {% endfor %}
+            </div>
+            <div class="row g-2 align-items-end">
+                <div class="col-6 col-md-3 col-xl-2">
+                    <label class="form-label" for="sr-de">De</label>
+                    <input type="date" class="form-control" id="sr-de" name="de" value="{{ f.de }}">
+                </div>
+                <div class="col-6 col-md-3 col-xl-2">
+                    <label class="form-label" for="sr-ate">Até</label>
+                    <input type="date" class="form-control" id="sr-ate" name="ate" value="{{ f.ate }}">
+                </div>
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label class="form-label" for="sr-sala">Sala</label>
+                    <select class="form-select" id="sr-sala" name="sala">
+                        <option value="">Todas</option>
+                        {% for id, nome in opcoes.salas %}<option value="{{ id }}" {{ f.sala == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label class="form-label" for="sr-usuario">Responsável</label>
+                    <select class="form-select" id="sr-usuario" name="usuario">
+                        <option value="">Todos</option>
+                        {% for id, nome in opcoes.pessoas %}<option value="{{ id }}" {{ f.usuario == id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 col-xl-2">
+                    <label class="form-label" for="sr-situacao">Situação</label>
+                    <select class="form-select" id="sr-situacao" name="situacao">
+                        <option value="">Todas</option>
+                        {% for chave, rotulo in situacoes %}<option value="{{ chave }}" {{ f.situacao == chave ? 'selected' }}>{{ rotulo }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 col-xl-2">
+                    <label class="form-label" for="sr-tipo">Tipo</label>
+                    <select class="form-select" id="sr-tipo" name="tipo">
+                        <option value="">Todos</option>
+                        <option value="interna" {{ f.tipo == 'interna' ? 'selected' }}>Interna</option>
+                        <option value="externa" {{ f.tipo == 'externa' ? 'selected' }}>Externa</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-8 col-xl-6">
+                    <label class="form-label" for="sr-q">Assunto</label>
+                    <input type="search" class="form-control" id="sr-q" name="q" value="{{ f.q }}" placeholder="Procurar no assunto da reunião">
+                </div>
+                <div class="col-12 col-md-4 col-xl-6 d-flex gap-2 justify-content-end">
+                    <a class="btn btn-ghost-secondary" href="{{ path('/plugins/salasreuniao/front/reservasempresa.php') }}"><i class="ti ti-eraser"></i><span>Limpar</span></a>
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-filter"></i><span>Filtrar</span></button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {# Resumo do que está filtrado #}
+    <div class="row g-2 mb-3 sr-resumo">
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Reservas</div><div class="h2 mb-0">{{ resumo.total }}</div></div></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Confirmadas</div><div class="h2 mb-0">{{ resumo.confirmada }}</div></div></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Encerradas</div><div class="h2 mb-0">{{ resumo.encerrada }}</div></div></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Canceladas</div><div class="h2 mb-0">{{ resumo.cancelada }}</div></div></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Horas reservadas</div><div class="h2 mb-0">{{ resumo.horas }}</div></div></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="card card-sm"><div class="card-body"><div class="text-muted small">Sala mais usada</div><div class="h3 mb-0 text-truncate" title="{{ resumo.sala_top }}">{{ resumo.sala_top }}</div>{% if resumo.sala_top_qtd %}<div class="text-muted small">{{ resumo.sala_top_qtd }} reserva(s)</div>{% endif %}</div></div></div>
+    </div>
+
+    {% if reservas is empty %}
+        <div class="card"><div class="card-body text-muted">Nenhuma reserva com esses filtros.</div></div>
+    {% else %}
+        {{ include('@salasreuniao/reservas_tabela.html.twig', {reservas: reservas, mostrar_quem: true}) }}
+    {% endif %}
+</div>
+
+<script>
+// Atalhos de período: preenchem "De/Até" e filtram
+(function () {
+    function iso(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var form = document.getElementById('sr-filtros');
+    form.querySelectorAll('[data-periodo]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var hoje = new Date();
+            var de = new Date(hoje), ate = new Date(hoje);
+            switch (b.dataset.periodo) {
+                case 'amanha': de.setDate(hoje.getDate() + 1); ate = new Date(de); break;
+                case 'semana': de.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7)); ate = new Date(de); ate.setDate(de.getDate() + 6); break;
+                case 'prox7': ate.setDate(hoje.getDate() + 6); break;
+                case 'mes': de = new Date(hoje.getFullYear(), hoje.getMonth(), 1); ate = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0); break;
+                case 'mes_passado': de = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1); ate = new Date(hoje.getFullYear(), hoje.getMonth(), 0); break;
+                case 'futuras': ate = null; break;
+                case 'tudo': de = null; ate = null; break;
+            }
+            form.querySelector('[name="de"]').value = de ? iso(de) : '';
+            form.querySelector('[name="ate"]').value = ate ? iso(ate) : '';
+            form.submit();
+        });
+    });
+})();
+</script>

@@ -1,0 +1,132 @@
+<style>
+    .salas-agendar .salas-horario {
+        min-width: 4.25rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .salas-agendar .salas-horario.active {
+        font-weight: 700;
+    }
+</style>
+<div class="container-fluid salas-agendar" style="max-width: 1100px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0">
+            <i class="ti ti-calendar-event"></i>
+            {{ remarcar ? 'Remarcar Reserva de Sala' : 'Agendar Sala de Reunião' }}
+        </h2>
+        <div class="d-flex flex-wrap gap-2">
+            {% if admin %}
+                <a class="btn btn-outline-secondary" href="{{ path('/plugins/salasreuniao/front/reservasempresa.php') }}">
+                    <i class="ti ti-building"></i><span>Reservas da Empresa</span>
+                </a>
+            {% endif %}
+            <a class="btn btn-outline-secondary" href="{{ path('/plugins/salasreuniao/front/minhasreservas.php') }}">
+                <i class="ti ti-list-check"></i><span>Minhas Reservas</span>
+            </a>
+        </div>
+    </div>
+
+    {% if not pronto %}
+        <div class="alert alert-warning">
+            O agendamento de salas ainda não está disponível.
+            {% if admin %}
+                Configure a integração com o Google e cadastre as salas em
+                <a href="{{ path('/plugins/salasreuniao/front/config.form.php') }}">Configurar → Salas de Reunião</a>.
+            {% else %}
+                Fale com a equipe de TI.
+            {% endif %}
+        </div>
+    {% else %}
+        <form id="salas-form" method="post" action="{{ path('/plugins/salasreuniao/front/agendar.form.php') }}"
+              data-config="{{ {
+                  ajax: path('/plugins/salasreuniao/ajax/horarios.php'),
+                  remarcar: remarcar ? remarcar.id : 0,
+                  sala: remarcar ? remarcar.sala : 0,
+                  hora: remarcar ? remarcar.hora : '',
+                  hoje: data_min,
+                  fecha: fecha,
+              }|json_encode|e('html_attr') }}">
+            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="remarcar" value="{{ remarcar ? remarcar.id : 0 }}">
+            <input type="hidden" name="rooms_id" value="">
+            <input type="hidden" name="hora" value="">
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">1. Dados da reunião</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label required" for="salas-data">Dia</label>
+                            <input type="date" class="form-control" id="salas-data" name="data" required
+                                   min="{{ data_min }}" max="{{ data_max }}"
+                                   value="{{ remarcar ? remarcar.data : '' }}">
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label required" for="salas-duracao">Duração da reunião</label>
+                            <select class="form-select" id="salas-duracao" name="duracao" required>
+                                <option value="">Selecione…</option>
+                                {% for minutos, rotulo in duracoes %}
+                                    <option value="{{ minutos }}" {{ remarcar and remarcar.duracao == minutos ? 'selected' }}>{{ rotulo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label required" for="salas-pessoas">Quantas pessoas participarão</label>
+                            <input type="number" class="form-control" id="salas-pessoas" name="pessoas" required
+                                   min="1" {{ max_pessoas > 0 ? 'max=' ~ max_pessoas }} step="1" inputmode="numeric"
+                                   value="{{ remarcar ? remarcar.pessoas : '' }}">
+                            {% if filtra_capacidade %}
+                                <div class="form-text">Mostramos só as salas que comportam esse número.</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label required d-block">Tipo de reunião</label>
+                            {% for valor, rotulo in tipos %}
+                                <label class="form-check">
+                                    <input class="form-check-input" type="radio" name="tipo" value="{{ valor }}" required
+                                           {{ remarcar and remarcar.tipo == valor ? 'checked' }}>
+                                    <span class="form-check-label">{{ rotulo }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required" for="salas-assunto">Assunto da reunião</label>
+                            <input type="text" class="form-control" id="salas-assunto" name="assunto" maxlength="200" required
+                                   placeholder="Ex.: Alinhamento semanal do Comercial"
+                                   value="{{ remarcar ? remarcar.assunto : '' }}">
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        <i class="ti ti-info-circle"></i>
+                        Salas disponíveis das {{ expediente }}.
+                        {% if intervalo > 0 %}
+                            Entre uma reunião e outra na mesma sala fica um intervalo de {{ intervalo }} minutos para organização.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">2. Escolha a sala e o horário</h3>
+                </div>
+                <div class="card-body">
+                    <div id="salas-resultado" aria-live="polite">
+                        <div class="text-muted">Preencha o dia, a duração e a quantidade de pessoas para ver os horários livres.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div id="salas-resumo" class="fw-bold">Escolha um horário acima.</div>
+                    <button type="submit" name="agendar" value="1" id="salas-confirmar" class="btn btn-primary" disabled>
+                        <i class="ti ti-check"></i><span>{{ remarcar ? 'Confirmar nova data' : 'Confirmar agendamento' }}</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+        <script src="{{ path('/plugins/salasreuniao/js/agendar.js') }}?v={{ js_versao }}"></script>
+    {% endif %}
+</div>

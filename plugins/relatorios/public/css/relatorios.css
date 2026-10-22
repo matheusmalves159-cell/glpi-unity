@@ -1,0 +1,54 @@
+/* Relatórios de chamados */
+.rl-tela .rl-kpi {
+    height: 100%;
+    border-left: 5px solid #9aa0ac;
+}
+
+.rl-tela .rl-kpi-icone {
+    font-size: 2rem;
+    opacity: .8;
+}
+
+.rl-tela .rl-kpi-rotulo {
+    font-size: .8rem;
+    color: var(--tblr-secondary, #667382);
+}
+
+.rl-tela .rl-kpi-valor {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--tblr-body-color, #1f2a44);
+}
+
+.rl-tela .rl-kpi-extra {
+    font-size: .75rem;
+    color: var(--tblr-secondary, #667382);
+}
+
+.rl-tela .rl-azul { border-left-color: #1f2a44; }
+.rl-tela .rl-azul .rl-kpi-icone { color: #1f2a44; }
+.rl-tela .rl-laranja { border-left-color: #f59f00; }
+.rl-tela .rl-laranja .rl-kpi-icone { color: #f59f00; }
+.rl-tela .rl-verde { border-left-color: #2fb344; }
+.rl-tela .rl-verde .rl-kpi-icone { color: #2fb344; }
+.rl-tela .rl-vermelho { border-left-color: #e8590c; }
+.rl-tela .rl-vermelho .rl-kpi-icone { color: #e8590c; }
+.rl-tela .rl-cinza .rl-kpi-icone { color: #9aa0ac; }
+
+.rl-tela .rl-tabela {
+    max-height: 520px;
+    overflow: auto;
+}
+
+.rl-tela .rl-tabela thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--tblr-bg-surface, #fff);
+}
+
+/* Tema escuro: o azul-marinho some no fundo escuro */
+[data-glpi-theme-dark="1"] .rl-tela .rl-azul { border-left-color: #6d9eeb; }
+[data-glpi-theme-dark="1"] .rl-tela .rl-azul .rl-kpi-icone { color: #6d9eeb; }
+[data-glpi-theme-dark="1"] .rl-tela .rl-kpi-valor { color: #e6ebf3; }

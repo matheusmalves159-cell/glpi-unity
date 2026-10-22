@@ -1,0 +1,17 @@
+# segredos e dados reais: nunca versionar
+.env
+*.sql
+*.sql.gz
+*.tsv
+*.csv
+*.xlsx
+*.xls
+*.bak*
+data/
+import/
+backup*/
+analise/
+# sistema
+.DS_Store
+Thumbs.db
+*.log

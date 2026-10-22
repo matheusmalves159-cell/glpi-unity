@@ -1,0 +1,491 @@
+{# Pergunta Sim/Não do procedimento (FacPlan): obrigatória só na inserção #}
+{% macro sim_nao(nome, rotulo, antigo) %}
+    <div class="col-12 col-md-4">
+        <label class="form-label required d-block">{{ rotulo }}</label>
+        {% for v, r in {'sim': 'Sim', 'nao': 'Não'} %}
+            <label class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="{{ nome }}" value="{{ v }}" data-req-ins {{ antigo[nome]|default('') == v ? 'checked' }}>
+                <span class="form-check-label">{{ r }}</span>
+            </label>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% set urgencia_atual = antigo.urgencia|default(tela.prioridade_padrao) %}
+{% set col_nomes = antigo.col_nome|default(['']) %}
+{% set marcados = antigo.equipamentos|default([]) %}
+
+<div class="container-fluid ct-tela" style="max-width: 1100px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="{{ tela.icone }}"></i> {{ tela.titulo }}</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-ghost-secondary" href="{{ path('/ServiceCatalog') }}">
+                <i class="ti ti-arrow-left"></i><span>Abrir Chamados</span>
+            </a>
+            <a class="btn btn-outline-secondary" href="{{ path('/front/ticket.php') }}">
+                <i class="ti ti-list-check"></i><span>Meus chamados</span>
+            </a>
+        </div>
+    </div>
+
+    {% if tela.intro %}
+        <div class="alert alert-info ct-intro">{{ tela.intro|nl2br }}</div>
+    {% endif %}
+
+    <form id="ct-form" method="post" enctype="multipart/form-data" action="{{ path('/plugins/chamadoti/front/abrir.form.php') }}">
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="tela" value="{{ tela.id }}">
+        <input type="hidden" name="categoria" id="ct-categoria" value="{{ antigo.categoria|default('') }}">
+
+        {# 1. Tipo de pedido #}
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">1. O que você precisa?</h3></div>
+            <div class="card-body">
+                <div id="ct-escolha" class="ct-escolha d-none">
+                    <i class="ti ti-circle-check-filled"></i>
+                    <span>Você escolheu: <strong id="ct-escolha-texto"></strong></span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="ct-trocar"><i class="ti ti-arrow-back-up"></i><span>Trocar</span></button>
+                </div>
+                <div id="ct-link" class="alert alert-warning mt-3 mb-0 d-none">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <i class="ti ti-external-link"></i>
+                        <span>Este pedido é feito em outra tela.</span>
+                        <a id="ct-link-botao" class="btn btn-primary btn-sm ms-auto" href="#"><i class="ti ti-arrow-right"></i><span>Ir para a tela</span></a>
+                    </div>
+                </div>
+
+                <div id="ct-escolher">
+                <div class="ct-busca mb-3">
+                    <div class="input-icon">
+                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                        <input type="search" id="ct-busca" class="form-control form-control-lg" autocomplete="off"
+                               placeholder="Busque pelo que precisa. Ex.: {{ tipos|slice(0, 3)|map(t => t.nome|lower)|join(', ') }}">
+                    </div>
+                    <div id="ct-resultados" class="list-group ct-resultados d-none"></div>
+                </div>
+                <div class="text-muted small mb-2">ou escolha abaixo:</div>
+                <div class="row g-2" id="ct-tipos">
+                    {% for t in tipos %}
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <button type="button" class="ct-tipo btn w-100 text-start" data-id="{{ t.id }}">
+                                <i class="ti {{ t.icone }} ct-tipo-icone"></i>
+                                <span>
+                                    <span class="ct-tipo-nome">{{ t.nome }}</span>
+                                    {% if t.texto %}<span class="ct-tipo-texto">{{ t.texto }}</span>{% endif %}
+                                </span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div id="ct-niveis" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ct-resto" class="d-none">
+
+        {# 2. Informações do pedido (aparecem conforme o tipo) #}
+        <div class="card mb-3 d-none" id="ct-bloco-extras">
+            <div class="card-header"><h3 class="card-title">2. Informações do pedido</h3></div>
+            <div class="card-body">
+
+                <div class="ct-extra d-none" data-extra="impacto">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-7">
+                            <label class="form-label required d-block">Quem está sendo afetado?</label>
+                            {% for chave, a in afetados %}
+                                <label class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="afetados" value="{{ chave }}" data-req data-urgencia="{{ a[1] }}"
+                                           {{ antigo.afetados|default('') == chave ? 'checked' }}>
+                                    <span class="form-check-label">{{ a[0] }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label" for="ct-desde">Desde quando? <span class="text-muted">(opcional)</span></label>
+                            <input type="datetime-local" class="form-control" id="ct-desde" name="desde" value="{{ antigo.desde|default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="equipamento">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-8">
+                            <label class="form-label required d-block">Qual equipamento?</label>
+                            {% for e in equipamentos %}
+                                <label class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="equipamentos[]" value="{{ e }}" {{ e in marcados ? 'checked' }}>
+                                    <span class="form-check-label">{{ e }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="ct-patrimonio">Patrimônio/etiqueta <span class="text-muted">(opcional)</span></label>
+                            <input type="text" class="form-control" id="ct-patrimonio" name="patrimonio" maxlength="100" value="{{ antigo.patrimonio|default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="emails">
+                    <label class="form-label required" for="ct-emails">E-mails que devem ser configurados</label>
+                    <textarea class="form-control" id="ct-emails" name="emails" rows="2" maxlength="2000" data-req
+                              placeholder="Um por linha. Ex.: financeiro@unitysaude.com.br">{{ antigo.emails|default('') }}</textarea>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="backup">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label required" for="ct-caminho">Caminho (pasta) do arquivo</label>
+                            <input type="text" class="form-control" id="ct-caminho" name="caminho" maxlength="500" data-req
+                                   value="{{ antigo.caminho|default('') }}" placeholder="Ex.: \\servidor\Financeiro\2026\planilha.xlsx">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="ct-versao-de">Versão desejada: de <span class="text-muted">(opcional)</span></label>
+                            <input type="datetime-local" class="form-control" id="ct-versao-de" name="versao_de" value="{{ antigo.versao_de|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="ct-versao-ate">até <span class="text-muted">(opcional)</span></label>
+                            <input type="datetime-local" class="form-control" id="ct-versao-ate" name="versao_ate" value="{{ antigo.versao_ate|default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="itens">
+                    <label class="form-label required" for="ct-itens">Itens e quantidades</label>
+                    <textarea class="form-control" id="ct-itens" name="itens" rows="3" maxlength="4000" data-req
+                              placeholder="Um item por linha. Ex.: 10 resmas de papel A4">{{ antigo.itens|default('') }}</textarea>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="local">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label required" for="ct-local">Local / unidade</label>
+                            <input type="text" class="form-control ct-combo" id="ct-local" name="local" data-lista="locais" autocomplete="off" maxlength="255" data-req
+                                   value="{{ antigo.local|default('') }}" placeholder="Escolha a unidade">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="ct-local-detalhe">Onde exatamente <span class="text-muted">(opcional)</span></label>
+                            <input type="text" class="form-control" id="ct-local-detalhe" name="local_detalhe" maxlength="255"
+                                   value="{{ antigo.local_detalhe|default('') }}" placeholder="Ex.: 2º andar, banheiro feminino">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="veiculo">
+                    <label class="form-label required" for="ct-veiculo">Veículo (modelo e placa)</label>
+                    <input type="text" class="form-control" id="ct-veiculo" name="veiculo" maxlength="100" data-req
+                           value="{{ antigo.veiculo|default('') }}" placeholder="Ex.: Onix branco – ABC1D23">
+                </div>
+
+                <div class="ct-extra d-none" data-extra="agenda">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-agenda-data">Data e horário</label>
+                            <input type="datetime-local" class="form-control" id="ct-agenda-data" name="agenda_data" data-req value="{{ antigo.agenda_data|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label required" for="ct-agenda-origem">Origem</label>
+                            <input type="text" class="form-control" id="ct-agenda-origem" name="agenda_origem" maxlength="255" data-req value="{{ antigo.agenda_origem|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label required" for="ct-agenda-destino">Destino</label>
+                            <input type="text" class="form-control" id="ct-agenda-destino" name="agenda_destino" maxlength="255" data-req value="{{ antigo.agenda_destino|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label" for="ct-agenda-pass">Passageiros</label>
+                            <input type="number" class="form-control" id="ct-agenda-pass" name="agenda_passageiros" min="1" max="99" value="{{ antigo.agenda_passageiros|default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="evento">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-evento-data">Data e horário do evento</label>
+                            <input type="datetime-local" class="form-control" id="ct-evento-data" name="evento_data" data-req value="{{ antigo.evento_data|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label required" for="ct-evento-pessoas">Participantes</label>
+                            <input type="number" class="form-control" id="ct-evento-pessoas" name="evento_participantes" min="1" max="9999" data-req value="{{ antigo.evento_participantes|default('') }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block">Vai precisar de <span class="text-muted">(opcional)</span></label>
+                            {% for s in suporte_evento %}
+                                <label class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="evento_suporte[]" value="{{ s }}" {{ s in antigo.evento_suporte|default([]) ? 'checked' }}>
+                                    <span class="form-check-label">{{ s }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="ct-evento-itens">Itens e quantidades <span class="text-muted">(móveis, papelaria, kits… opcional)</span></label>
+                            <textarea class="form-control" id="ct-evento-itens" name="evento_itens" rows="2" maxlength="4000">{{ antigo.evento_itens|default('') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="evento_interno">
+                    <label class="form-label required d-block">Onde será o evento</label>
+                    {% for l in locais_evento %}
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="evento_locais[]" value="{{ l }}" {{ l in antigo.evento_locais|default([]) ? 'checked' }}>
+                            <span class="form-check-label">{{ l }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                {# Procedimento (FacPlan › Cadastro): inserção pede tudo; alteração, só código e tabela #}
+                <div class="ct-extra d-none" data-extra="procedimento">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label required d-block">O que você precisa</label>
+                            {% for v, r in {'insercao': 'Inserção (procedimento novo)', 'alteracao': 'Alteração (procedimento que já existe)'} %}
+                                <label class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="proc_operacao" value="{{ v }}" data-req data-ct-proc-operacao
+                                           {{ antigo.proc_operacao|default('') == v ? 'checked' }}>
+                                    <span class="form-check-label">{{ r }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-proc-codigo">Código</label>
+                            <input type="text" class="form-control" id="ct-proc-codigo" name="proc_codigo" maxlength="50" data-req value="{{ antigo.proc_codigo|default('') }}" placeholder="Ex.: 10101012">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-proc-tabela">Tabela do código</label>
+                            <input type="text" class="form-control" id="ct-proc-tabela" name="proc_tabela" maxlength="100" data-req list="ct-proc-tabelas" value="{{ antigo.proc_tabela|default('') }}" placeholder="Ex.: TUSS">
+                            <datalist id="ct-proc-tabelas">
+                                <option value="TUSS"><option value="CBHPM"><option value="AMB 90"><option value="AMB 92"><option value="Tabela própria">
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-0 d-none" data-ct-proc-insercao>
+                        <div class="col-12 col-md-8">
+                            <label class="form-label required" for="ct-proc-descricao">Descrição</label>
+                            <input type="text" class="form-control" id="ct-proc-descricao" name="proc_descricao" maxlength="255" data-req-ins value="{{ antigo.proc_descricao|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-proc-porte">Porte hierárquico</label>
+                            <input type="text" class="form-control" id="ct-proc-porte" name="proc_porte" maxlength="100" data-req-ins value="{{ antigo.proc_porte|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-proc-sexo">Sexo</label>
+                            <select class="form-select" id="ct-proc-sexo" name="proc_sexo" data-req-ins>
+                                <option value="">Escolha…</option>
+                                {% for v, r in {'ambos': 'Ambos', 'masculino': 'Masculino', 'feminino': 'Feminino'} %}
+                                    <option value="{{ v }}" {{ antigo.proc_sexo|default('') == v ? 'selected' }}>{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label required" for="ct-proc-idade-ini">Idade inicial</label>
+                            <input type="number" class="form-control" id="ct-proc-idade-ini" name="proc_idade_ini" min="0" max="150" data-req-ins value="{{ antigo.proc_idade_ini|default('') }}">
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label required" for="ct-proc-idade-fim">Idade final</label>
+                            <input type="number" class="form-control" id="ct-proc-idade-fim" name="proc_idade_fim" min="0" max="150" data-req-ins value="{{ antigo.proc_idade_fim|default('') }}">
+                        </div>
+                        {{ _self.sim_nao('proc_pendencia', 'Cai em pendência?', antigo) }}
+                        {{ _self.sim_nao('proc_urgencia', 'É urgência e emergência?', antigo) }}
+                        {{ _self.sim_nao('proc_dut', 'Tem DUT?', antigo) }}
+                        <div class="col-12 d-none" data-ct-se-sim="proc_dut">
+                            <label class="form-label required" for="ct-proc-dut-qual">Qual a DUT?</label>
+                            <input type="text" class="form-control" id="ct-proc-dut-qual" name="proc_dut_qual" maxlength="255"
+                                   value="{{ antigo.proc_dut_qual|default('') }}" placeholder="Ex.: DUT 12 – Ressonância magnética">
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label required" for="ct-proc-carencia">Grupo de carência</label>
+                            <input type="text" class="form-control" id="ct-proc-carencia" name="proc_carencia" maxlength="100" data-req-ins
+                                   value="{{ antigo.proc_carencia|default('') }}" placeholder="Ex.: Grupo 2 – 180 dias">
+                        </div>
+                        {{ _self.sim_nao('proc_limite', 'Tem limite?', antigo) }}
+                        <div class="col-12 col-md-4 d-none" data-ct-se-sim="proc_limite">
+                            <label class="form-label required" for="ct-proc-limite-grupo">Qual grupo de limite?</label>
+                            <input type="text" class="form-control" id="ct-proc-limite-grupo" name="proc_limite_grupo" maxlength="100"
+                                   value="{{ antigo.proc_limite_grupo|default('') }}">
+                        </div>
+
+                        {{ _self.sim_nao('proc_qtd', 'Tem quantidade máxima?', antigo) }}
+                        <div class="col-6 col-md-4 d-none" data-ct-se-sim="proc_qtd">
+                            <label class="form-label required" for="ct-proc-qtd-max">Quantidade máxima</label>
+                            <input type="number" class="form-control" id="ct-proc-qtd-max" name="proc_qtd_max" min="1" max="9999"
+                                   value="{{ antigo.proc_qtd_max|default('') }}">
+                        </div>
+                        <div class="col-6 col-md-4 d-none" data-ct-se-sim="proc_qtd">
+                            <label class="form-label required" for="ct-proc-qtd-periodo">Em que período</label>
+                            <select class="form-select" id="ct-proc-qtd-periodo" name="proc_qtd_periodo">
+                                <option value="">Escolha…</option>
+                                {% for p in periodos_procedimento %}
+                                    <option value="{{ p }}" {{ antigo.proc_qtd_periodo|default('') == p ? 'selected' }}>{{ p }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {{ _self.sim_nao('proc_dependencia', 'Tem dependência proibitiva?', antigo) }}
+                        <div class="col-12 col-md-8 d-none" data-ct-se-sim="proc_dependencia">
+                            <label class="form-label required" for="ct-proc-dependencia-qual">Depende de qual procedimento?</label>
+                            <input type="text" class="form-control" id="ct-proc-dependencia-qual" name="proc_dependencia_qual" maxlength="255"
+                                   value="{{ antigo.proc_dependencia_qual|default('') }}" placeholder="Código e nome do procedimento">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required d-block">Tipo</label>
+                            {% for v, r in {'consulta': 'Consulta', 'exame': 'Exame'} %}
+                                <label class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="proc_tipo" value="{{ v }}" data-req-ins {{ antigo.proc_tipo|default('') == v ? 'checked' }}>
+                                    <span class="form-check-label">{{ r }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-hint mt-2 d-none" data-ct-proc-alteracao>Na alteração basta o código e a tabela; descreva o que muda no campo "Descrição" abaixo.</div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="evento_externo">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label required" for="ct-evento-empresa">Empresa</label>
+                            <input type="text" class="form-control" id="ct-evento-empresa" name="evento_empresa" maxlength="255" data-req value="{{ antigo.evento_empresa|default('') }}">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label required" for="ct-evento-local">Localização</label>
+                            <input type="text" class="form-control" id="ct-evento-local" name="evento_localizacao" maxlength="255" data-req value="{{ antigo.evento_localizacao|default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-extra d-none" data-extra="colaboradores">
+                    <p class="text-muted mb-2">Colaboradores que precisam de acesso (até {{ max_colaboradores }}):</p>
+                    <div id="ct-colaboradores">
+                        {% for i, nome in col_nomes %}
+                            {% set tipo = antigo.col_tipo[i]|default('') %}
+                            <div class="card card-sm ct-colaborador mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <strong class="ct-colab-titulo">Colaborador {{ i + 1 }}</strong>
+                                        <button type="button" class="btn btn-sm btn-ghost-danger ct-remover" title="Remover"><i class="ti ti-trash"></i><span>Remover</span></button>
+                                    </div>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label required">Nome completo</label>
+                                            <input type="text" class="form-control" name="col_nome[]" maxlength="255" data-req value="{{ nome }}">
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <label class="form-label required">Cargo</label>
+                                            <input type="text" class="form-control ct-combo" name="col_cargo[]" data-lista="cargos" autocomplete="off" maxlength="255" data-req
+                                                   value="{{ antigo.col_cargo[i]|default('') }}" placeholder="Ex.: Analista">
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label class="form-label required">CPF (6 primeiros)</label>
+                                            <input type="text" class="form-control" name="col_cpf[]" maxlength="6" inputmode="numeric" pattern="\d{6}" data-req
+                                                   value="{{ antigo.col_cpf[i]|default('') }}">
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label class="form-label required">Nascimento</label>
+                                            <input type="date" class="form-control" name="col_nasc[]" data-req value="{{ antigo.col_nasc[i]|default('') }}">
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <label class="form-label required">Situação</label>
+                                            <select class="form-select ct-col-tipo" name="col_tipo[]" data-req>
+                                                <option value="">Selecione…</option>
+                                                {% for chave, rotulo in tipos_colaborador %}
+                                                    <option value="{{ chave }}" {{ tipo == chave ? 'selected' }}>{{ rotulo }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% set setor = antigo.col_setor[i]|default(meu_setor) %}
+                                        <div class="col-12 col-md-4">
+                                            <label class="form-label required">Setor (para onde vai)</label>
+                                            <select class="form-select ct-col-setor" name="col_setor[]" data-req>
+                                                <option value="">Selecione…</option>
+                                                {% for id, nomeSetor in setores %}
+                                                    <option value="{{ id }}" {{ setor == id ? 'selected' }}>{{ nomeSetor }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label required">Copiar acesso de</label>
+                                            <input type="text" class="form-control ct-combo" name="col_perfil[]" data-lista="pessoas_setor" autocomplete="off" maxlength="255" data-req
+                                                   value="{{ antigo.col_perfil[i]|default('') }}" placeholder="Alguém do setor com o mesmo acesso">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="ct-adicionar"><i class="ti ti-plus"></i><span>Adicionar colaborador</span></button>
+                </div>
+
+                {# Campos criados na Central de telas para o pedido escolhido #}
+                <div class="row g-3 d-none ac-livre" id="ct-campos-proprios"></div>
+            </div>
+        </div>
+
+        {# 3. Descrição #}
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><span class="ct-num">3</span>. Descreva o pedido</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label required" for="ct-titulo">Título</label>
+                        <input type="text" class="form-control ac-livre" id="ct-titulo" name="titulo" maxlength="255" required minlength="3"
+                               value="{{ antigo.titulo|default('') }}" placeholder="{{ opcoes.titulo_dica ?: 'Resuma o pedido em poucas palavras' }}">
+                    </div>
+                    {% if opcoes.desc_modo != 'oculta' %}
+                    <div class="col-12">
+                        <label class="form-label {{ opcoes.desc_modo == 'obrigatoria' ? 'required' }}" for="ct-descricao">Descrição {% if opcoes.desc_modo != 'obrigatoria' %}<span class="text-muted">(opcional)</span>{% endif %}</label>
+                        <textarea class="form-control ac-livre" id="ct-descricao" name="descricao" rows="5" maxlength="10000" {{ opcoes.desc_modo == 'obrigatoria' ? 'required minlength=5' }}
+                                  placeholder="{{ opcoes.desc_ajuda ?: 'O que aconteceu ou o que você precisa? Se for erro: o que estava fazendo e qual mensagem apareceu.' }}">{{ antigo.descricao|default('') }}</textarea>
+                    </div>
+                    {% endif %}
+                    {% if tela.mostrar_anexos %}
+                    <div class="col-12">
+                        <label class="form-label" for="ct-anexos">Anexos <span class="text-muted">(opcional — prints e fotos ajudam muito; até {{ max_anexos }} arquivos de {{ max_mb }} MB)</span></label>
+                        <input type="file" class="form-control" id="ct-anexos" name="anexos[]" multiple accept="{{ extensoes }}">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# 4. Prioridade (define o SLA) #}
+        {% if tela.mostrar_prioridade %}
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title"><span class="ct-num">4</span>. Prioridade</h3></div>
+            <div class="card-body">
+                <p class="text-muted mb-2">A prioridade define os prazos de atendimento (contados em horário comercial). Escolha com cuidado: pedidos com prioridade alta sem necessidade atrasam quem realmente precisa.</p>
+                <div class="row g-2" id="ct-prioridades">
+                    {% for valor, p in prioridades %}
+                        <div class="col-12 col-md">
+                            <label class="ct-prioridade ct-cor-{{ p[2] }} w-100">
+                                <input type="radio" name="urgencia" value="{{ valor }}" required {{ urgencia_atual == valor ? 'checked' }}>
+                                <span class="ct-prioridade-nome">{{ p[0] }}</span>
+                                <span class="ct-prioridade-texto">{{ p[1] }}</span>
+                                {% if prazos[valor].tto or prazos[valor].ttr %}
+                                    <span class="ct-prioridade-prazo">
+                                        {% if prazos[valor].tto %}<span><i class="ti ti-clock"></i> Resposta em {{ prazos[valor].tto }}</span>{% endif %}
+                                        {% if prazos[valor].ttr %}<span><i class="ti ti-flag"></i> Solução em {{ prazos[valor].ttr }}</span>{% endif %}
+                                    </span>
+                                {% endif %}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-body d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <span class="text-muted" id="ct-resumo"></span>
+                <button type="submit" name="enviar" value="1" class="btn btn-primary btn-lg">
+                    <i class="ti ti-send"></i><span>Abrir chamado</span>
+                </button>
+            </div>
+        </div>
+        </div>
+    </form>
+</div>
+
+<script type="application/json" id="ct-dados">{{ {'nos': nos, 'cargos': cargos, 'locais': locais, 'pessoas_setor': pessoas_setor, 'meu_setor': meu_setor, 'max': max_colaboradores, 'max_anexos': max_anexos, 'max_mb': max_mb, 'antigo_campo': antigo_campo}|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
+<script src="{{ path('/plugins/chamadoti/js/abrir.js') }}?v={{ constant('PLUGIN_CHAMADOTI_VERSION') }}"></script>

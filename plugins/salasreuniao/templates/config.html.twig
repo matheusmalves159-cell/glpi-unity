@@ -1,0 +1,139 @@
+{% set nomes_dias = {1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado', 7: 'Domingo'} %}
+{% set opcoes_duracao = [15, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480] %}
+
+<div class="container-fluid" style="max-width: 1000px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-settings"></i> Salas de Reunião — Configuração</h2>
+        <a class="btn btn-outline-secondary" href="{{ path('/plugins/salasreuniao/front/room.php') }}">
+            <i class="ti ti-door"></i><span>Cadastro de salas</span>
+        </a>
+    </div>
+
+    <form method="post" action="{{ path('/plugins/salasreuniao/front/config.form.php') }}">
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Funcionamento</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label required" for="cfg-inicio">Abre às</label>
+                        <input type="time" class="form-control" id="cfg-inicio" name="hora_inicio" value="{{ v.hora_inicio }}" required>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label required" for="cfg-fim">Fecha às</label>
+                        <input type="time" class="form-control" id="cfg-fim" name="hora_fim" value="{{ v.hora_fim }}" required>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="cfg-intervalo">Intervalo entre reuniões (min)</label>
+                        <input type="number" class="form-control" id="cfg-intervalo" name="intervalo_min" min="0" max="120" step="5" value="{{ v.intervalo_min }}">
+                        <div class="form-text">Tempo livre antes e depois de cada reunião na mesma sala.</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="cfg-passo">Horários oferecidos a cada</label>
+                        <select class="form-select" id="cfg-passo" name="passo_min">
+                            {% for p in [15, 30, 60] %}
+                                <option value="{{ p }}" {{ v.passo_min == p ? 'selected' }}>{{ p }} min</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <span class="form-label d-block">Dias da semana</span>
+                        {% for n, nome in nomes_dias %}
+                            <label class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="dias_semana[]" value="{{ n }}" {{ n in dias ? 'checked' }}>
+                                <span class="form-check-label">{{ nome }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="cfg-antecedencia">Agendar com até quantos dias de antecedência</label>
+                        <input type="number" class="form-control" id="cfg-antecedencia" name="antecedencia_dias" min="1" max="365" value="{{ v.antecedencia_dias }}">
+                    </div>
+                    <div class="col-12">
+                        <span class="form-label d-block">Durações oferecidas</span>
+                        {% for d in opcoes_duracao %}
+                            <label class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="duracoes[]" value="{{ d }}" {{ d in duracoes ? 'checked' }}>
+                                <span class="form-check-label">{{ d < 60 ? d ~ ' min' : (d % 60 == 0 ? (d // 60) ~ 'h' : (d // 60) ~ 'h' ~ (d % 60)) }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Chamado de cada reserva</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="cfg-grupo">Setor responsável</label>
+                        <select class="form-select" id="cfg-grupo" name="groups_id_assign">
+                            <option value="0">— Nenhum —</option>
+                            {% for id, nome in grupos %}
+                                <option value="{{ id }}" {{ v.groups_id_assign == id ? 'selected' }}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">O chamado fica atribuído a esse grupo: só quem abriu e esse setor o veem.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="cfg-categoria">Categoria do chamado</label>
+                        <select class="form-select" id="cfg-categoria" name="itilcategories_id">
+                            <option value="0">— Nenhuma —</option>
+                            {% for id, nome in categorias %}
+                                <option value="{{ id }}" {{ v.itilcategories_id == id ? 'selected' }}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Integração com o Google Agenda</h3></div>
+            <div class="card-body">
+                {% if tem_chave %}
+                    <div class="alert alert-success">
+                        Chave configurada. Conta de serviço: <strong>{{ conta_servico }}</strong><br>
+                        Compartilhe a agenda de cada sala com esse e-mail, com a permissão <em>"Fazer alterações nos eventos"</em>.
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">Nenhuma chave configurada ainda.</div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="cfg-chave">{{ tem_chave ? 'Trocar a chave da conta de serviço' : 'Chave da conta de serviço (arquivo JSON)' }}</label>
+                        <textarea class="form-control font-monospace" id="cfg-chave" name="service_account_key" rows="4" autocomplete="off" spellcheck="false"
+                                  placeholder="Abra o arquivo .json baixado do Google Cloud e cole todo o conteúdo aqui"></textarea>
+                        <div class="form-text">A chave fica guardada criptografada e nunca é exibida de novo. Deixe em branco para manter a atual.</div>
+                        {% if tem_chave %}
+                            <label class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="remover_chave" value="1">
+                                <span class="form-check-label">Remover a chave atual</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="cfg-conta">Agendar em nome de (Google Workspace, opcional)</label>
+                        <input type="email" class="form-control" id="cfg-conta" name="conta_delegada" value="{{ v.conta_delegada }}" placeholder="agenda@empresa.com.br">
+                        <div class="form-text">
+                            Com delegação em todo o domínio liberada, os eventos são criados por essa conta e quem agendou
+                            recebe o convite na própria agenda. Vazio: o evento fica só na agenda da sala.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-end mb-4">
+            <button type="submit" name="testar" value="1" class="btn btn-outline-secondary" {{ tem_chave ? '' : 'disabled' }}>
+                <i class="ti ti-plug-connected"></i><span>Testar conexão com as salas</span>
+            </button>
+            <button type="submit" name="update" value="1" class="btn btn-primary">
+                <i class="ti ti-device-floppy"></i><span>Salvar</span>
+            </button>
+        </div>
+    </form>
+</div>

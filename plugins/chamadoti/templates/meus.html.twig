@@ -1,0 +1,50 @@
+<div class="container-fluid" style="max-width: 1200px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-list-check"></i> Meus chamados</h2>
+        <a class="btn btn-primary" href="{{ path('/ServiceCatalog') }}">
+            <i class="ti ti-plus"></i><span>Novo chamado</span>
+        </a>
+    </div>
+
+    {% if chamados is empty %}
+        <div class="card"><div class="card-body text-muted">Você ainda não abriu nenhum chamado.</div></div>
+    {% else %}
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Chamado</th>
+                            <th>Aberto em</th>
+                            <th>Setor</th>
+                            <th>Título</th>
+                            <th>Pedido</th>
+                            <th>Prioridade</th>
+                            <th>Prazo de solução</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in chamados %}
+                            <tr>
+                                <td><a href="{{ path('/front/ticket.form.php') }}?id={{ c.id }}">#{{ c.id }}</a></td>
+                                <td class="text-nowrap">{{ c.data }}</td>
+                                <td>{{ c.setor }}</td>
+                                <td>{{ c.titulo }}</td>
+                                <td>{{ c.pedido }}</td>
+                                <td><span class="badge bg-{{ c.prioridade[2] }}-lt">{{ c.prioridade[0] }}</span></td>
+                                <td class="text-nowrap">
+                                    {% if c.prazo %}
+                                        {{ c.prazo }}
+                                        <span class="badge {{ c.no_prazo == 'atrasado' ? 'bg-red-lt' : 'bg-green-lt' }}">{{ c.no_prazo == 'atrasado' ? 'Atrasado' : 'No prazo' }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td><span class="badge {{ c.concluido ? 'bg-green-lt' : 'bg-blue-lt' }}">{{ c.situacao }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>

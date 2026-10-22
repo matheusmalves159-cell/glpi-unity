@@ -1,0 +1,49 @@
+<div class="container-fluid" style="max-width: 1100px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-list-check"></i> Minhas solicitações de pagamento</h2>
+        <a class="btn btn-primary" href="{{ path('/plugins/pagamentos/front/solicitar.php') }}">
+            <i class="ti ti-plus"></i><span>Nova solicitação</span>
+        </a>
+    </div>
+
+    {% if pedidos is empty %}
+        <div class="card"><div class="card-body text-muted">Você ainda não fez nenhuma solicitação de pagamento.</div></div>
+    {% else %}
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Fornecedor</th>
+                            <th class="text-end">Valor</th>
+                            <th>Descrição</th>
+                            <th>Setor</th>
+                            <th>Pagamento</th>
+                            <th>Chamado</th>
+                            <th>Aprovação</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pedidos %}
+                            <tr>
+                                <td class="text-nowrap">{{ p.data }}</td>
+                                <td>{{ p.fornecedor }}</td>
+                                <td class="text-end text-nowrap">R$ {{ p.valor|number_format(2, ',', '.') }}</td>
+                                <td>{{ p.servico }}</td>
+                                <td>{{ p.setor }}</td>
+                                <td>{{ p.forma }}</td>
+                                <td>{% if p.chamado %}<a href="{{ path('/front/ticket.form.php') }}?id={{ p.chamado }}">#{{ p.chamado }}</a>{% else %}—{% endif %}</td>
+                                <td>{% if p.aprovacao %}<span class="badge {{ p.aprovacao[1] }}">{{ p.aprovacao[0] }}</span>{% else %}—{% endif %}</td>
+                                <td>
+                                    <span class="badge {{ p.concluido ? 'bg-green-lt' : 'bg-blue-lt' }}">{{ p.situacao }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>

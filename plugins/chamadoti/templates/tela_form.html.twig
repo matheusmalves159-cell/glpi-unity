@@ -1,0 +1,327 @@
+{# Uma linha do construtor de campos (campo próprio de um pedido) #}
+{% macro linha_campo(cid, n, c, tipos) %}
+    {% set base = 'cat[' ~ cid ~ '][campos][' ~ n ~ ']' %}
+    {% set tipo = c.tipo|default('texto') %}
+    <div class="ct-campo-linha">
+        <input type="hidden" name="{{ base }}[id]" value="{{ c.id|default('') }}">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-lg-4">
+                <input class="form-control form-control-sm" name="{{ base }}[rotulo]" maxlength="100" value="{{ c.rotulo|default('') }}" placeholder="Nome do campo. Ex.: Número do contrato">
+            </div>
+            <div class="col-7 col-lg-3">
+                <select class="form-select form-select-sm ct-campo-tipo" name="{{ base }}[tipo]">
+                    {% for k, r in tipos %}<option value="{{ k }}" {{ k == tipo ? 'selected' }}>{{ r }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-5 col-lg-2">
+                <label class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="{{ base }}[obrigatorio]" value="1" {{ c.obrigatorio|default(false) ? 'checked' }}>
+                    <span class="form-check-label small">Obrigatório</span>
+                </label>
+            </div>
+            <div class="col-12 col-lg-3 text-lg-end">
+                <button type="button" class="btn btn-sm btn-ghost-danger ct-campo-rem"><i class="ti ti-trash"></i><span>Remover</span></button>
+            </div>
+            <div class="col-12 col-lg-6 ct-campo-opcoes {{ tipo in ['lista', 'multipla'] ? '' : 'd-none' }}">
+                <textarea class="form-control form-control-sm" rows="3" name="{{ base }}[opcoes]" placeholder="Uma opção por linha">{{ (c.opcoes|default([]))|join("\n") }}</textarea>
+            </div>
+            <div class="col-12 col-lg-6">
+                <input class="form-control form-control-sm" name="{{ base }}[ajuda]" maxlength="200" value="{{ c.ajuda|default('') }}" placeholder="Texto de ajuda embaixo do campo (opcional)">
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+{% import _self as ct %}
+
+<div class="container-fluid ct-central" style="max-width: 1200px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="{{ t.icone }}"></i> {{ t.id ? t.titulo : 'Nova tela de chamado' }}</h2>
+        <div class="d-flex gap-2">
+            <a class="btn btn-ghost-secondary" href="{{ path('/plugins/chamadoti/front/central.php') }}"><i class="ti ti-arrow-left"></i><span>Central de telas</span></a>
+            {% if t.id %}
+                <a class="btn btn-outline-secondary" href="{{ path('/plugins/chamadoti/front/abrir.php') }}?tela={{ t.id }}" target="_blank"><i class="ti ti-eye"></i><span>Ver a tela</span></a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" action="{{ path('/plugins/chamadoti/front/tela.form.php') }}">
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="id" value="{{ t.id }}">
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">1. Setor e aparência</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label class="form-label required" for="tl-nome">Nome do setor</label>
+                        <input class="form-control" id="tl-nome" name="nome" maxlength="100" required value="{{ t.nome }}" placeholder="Ex.: TI, Administrativo, RH">
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label" for="tl-titulo">Título da tela</label>
+                        <input class="form-control" id="tl-titulo" name="titulo" maxlength="255" value="{{ t.titulo }}" placeholder="Em branco = Chamado + nome do setor">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="tl-icone">Ícone <a href="https://tabler.io/icons" target="_blank" class="small">(ver ícones)</a></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="{{ t.icone }}" id="tl-icone-ver"></i></span>
+                            <input class="form-control" id="tl-icone" name="icone" maxlength="100" value="{{ t.icone }}" placeholder="ti ti-headset">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-1">
+                        <label class="form-label" for="tl-ordem">Ordem</label>
+                        <input type="number" class="form-control" id="tl-ordem" name="ordem" min="0" max="999" value="{{ t.ordem }}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label required" for="tl-raiz">Categoria do setor</label>
+                        <select class="form-select" id="tl-raiz" name="itilcategories_id" required>
+                            <option value="">Selecione…</option>
+                            {% for id, nome in raizes %}<option value="{{ id }}" {{ id == t.itilcategories_id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                        </select>
+                        <div class="form-hint">A tela mostra as subcategorias dela. {% if t.id %}Trocar a categoria apaga a configuração dos pedidos abaixo.{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="tl-grupo">Grupo que atende os chamados</label>
+                        <select class="form-select" id="tl-grupo" name="groups_id">
+                            <option value="0">— Nenhum —</option>
+                            {% for id, nome in grupos %}<option value="{{ id }}" {{ id == t.groups_id ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="tl-desc">Descrição no cartão (Abrir Chamados)</label>
+                        <input class="form-control" id="tl-desc" name="descricao" maxlength="255" value="{{ t.descricao }}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="tl-intro">Aviso no topo da tela <span class="text-muted">(opcional)</span></label>
+                        <textarea class="form-control" id="tl-intro" name="intro" rows="2" maxlength="2000">{{ t.intro }}</textarea>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label d-block">Cor do cartão</label>
+                        <div class="d-flex flex-wrap gap-2" id="tl-cores">
+                            <label class="ct-cor-opcao ct-cor-auto"><input type="radio" name="opcoes[cor]" value="" {{ opcoes.cor == '' ? 'checked' }}><span>Automática</span></label>
+                            {% for chave, nome in cores %}
+                                <label class="ct-cor-opcao ct-cor-{{ chave }}"><input type="radio" name="opcoes[cor]" value="{{ chave }}" {{ opcoes.cor == chave ? 'checked' }}><span>{{ nome }}</span></label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="tl-grupos-ver">Quem pode abrir chamados nesta tela</label>
+                        <select class="form-select" id="tl-grupos-ver" name="opcoes[grupos_ver][]" multiple size="4">
+                            {% for id, nome in grupos_todos %}<option value="{{ id }}" {{ id in opcoes.grupos_ver ? 'selected' }}>{{ nome }}</option>{% endfor %}
+                        </select>
+                        <div class="form-hint">Nada marcado = todos os usuários. Marque grupos para limitar (Ctrl + clique para vários).</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" {{ t.is_active ? 'checked' }}>
+                            <span class="form-check-label">Tela ativa (aparece para os usuários)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">2. Comportamento da tela</h3></div>
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    {% for campo, rotulo in {'mostrar_anexos': 'Anexos', 'mostrar_prioridade': 'Escolha da prioridade (mostra os prazos de SLA)'} %}
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="{{ campo }}" value="1" {{ attribute(t, campo) ? 'checked' }} {{ campo == 'mostrar_prioridade' ? 'id=tl-prioridade' }}>
+                                <span class="form-check-label">{{ rotulo }}</span>
+                            </label>
+                        </div>
+                    {% endfor %}
+                    <div class="col-12 col-md-4" id="tl-padrao">
+                        <label class="form-label" for="tl-prio-padrao">Prioridade usada quando a escolha está escondida</label>
+                        <select class="form-select" id="tl-prio-padrao" name="prioridade_padrao">
+                            {% for v, p in prioridades %}<option value="{{ v }}" {{ v == t.prioridade_padrao ? 'selected' }}>{{ p[0] }}</option>{% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="tl-desc-modo">Campo Descrição</label>
+                        <select class="form-select" id="tl-desc-modo" name="opcoes[desc_modo]">
+                            {% for k, r in desc_modos %}<option value="{{ k }}" {{ opcoes.desc_modo == k ? 'selected' }}>{{ r }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <label class="form-label" for="tl-desc-ajuda">Texto de ajuda da descrição <span class="text-muted">(aparece dentro do campo)</span></label>
+                        <input class="form-control" id="tl-desc-ajuda" name="opcoes[desc_ajuda]" maxlength="300" value="{{ opcoes.desc_ajuda }}" placeholder="Em branco = texto padrão">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="tl-titulo-dica">Exemplo no campo Título</label>
+                        <input class="form-control" id="tl-titulo-dica" name="opcoes[titulo_dica]" maxlength="150" value="{{ opcoes.titulo_dica }}" placeholder="Em branco = Resuma o pedido em poucas palavras">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="tl-prefixo">Prefixo no título do chamado</label>
+                        <input class="form-control" id="tl-prefixo" name="opcoes[titulo_prefixo]" maxlength="40" value="{{ opcoes.titulo_prefixo }}" placeholder="Ex.: [ADM]">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="tl-tipo">Tipo do chamado</label>
+                        <select class="form-select" id="tl-tipo" name="opcoes[tipo]">
+                            {% for k, r in tipos_chamado %}<option value="{{ k }}" {{ opcoes.tipo == k ? 'selected' }}>{{ r }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="tl-msg">Mensagem depois de abrir o chamado <span class="text-muted">(somada ao número e ao prazo)</span></label>
+                        <input class="form-control" id="tl-msg" name="opcoes[msg_sucesso]" maxlength="300" value="{{ opcoes.msg_sucesso }}" placeholder="Em branco = só o número do chamado e o prazo">
+                    </div>
+                </div>
+                <div class="form-hint mt-2">O título é sempre obrigatório. Os campos próprios de cada pedido são criados abaixo, por categoria.</div>
+            </div>
+        </div>
+
+        {% if t.id %}
+            <div class="card mb-3">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h3 class="card-title mb-0">3. Pedidos (categorias), cartões e campos</h3>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ct-mostrar-todos"><i class="ti ti-eye"></i><span>Mostrar todos</span></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ct-ocultar-todos"><i class="ti ti-eye-off"></i><span>Ocultar todos</span></button>
+                    </div>
+                </div>
+                <div class="card-body pb-0">
+                    <div class="text-muted small mb-2">
+                        <strong>Mostrar</strong>: desmarque para tirar o pedido (e os de baixo) da tela.
+                        <strong>Ordem</strong>: menor aparece antes (0 = ordem alfabética).
+                        <strong>Ícone/texto</strong>: só do primeiro nível (os cartões grandes).
+                        <strong>Campos prontos</strong>: blocos já feitos (equipamento, evento, colaboradores...).
+                        <strong>Campos próprios</strong>: campos que você cria (texto, número, data, lista, sim/não...). Valem para o pedido e todos abaixo dele.
+                        <strong>Link</strong>: em vez de abrir chamado, leva para outra tela (ex.: /plugins/salasreuniao/front/agendar.php).
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-vcenter card-table ct-cats">
+                        <thead><tr><th>Pedido</th><th class="text-center">Mostrar</th><th>Ordem</th><th>Ícone e texto do cartão</th><th>Campos prontos</th><th>Campos próprios</th><th>Link</th></tr></thead>
+                        <tbody>
+                            {% for c in categorias %}
+                                {% set cfg = c.cfg %}
+                                <tr class="{{ not c.visivel ? 'text-muted' }}">
+                                    <td style="padding-left: {{ 0.5 + (c.nivel - 1) * 1.4 }}rem;">
+                                        <span class="{{ c.nivel == 1 ? 'fw-bold' }}">{{ c.name }}</span>
+                                        {% if not c.visivel %}<span class="badge bg-secondary-lt ms-1" title="'Exibir nos chamados' está desligado no cadastro da categoria">oculta nos chamados</span>{% endif %}
+                                    </td>
+                                    <td class="text-center"><input class="form-check-input ct-mostrar" type="checkbox" name="cat[{{ c.id }}][mostrar]" value="1" {{ not cfg.oculto ? 'checked' }}></td>
+                                    <td><input type="number" class="form-control form-control-sm" style="width: 70px" name="cat[{{ c.id }}][ordem]" min="0" max="999" value="{{ cfg.ordem ?: '' }}"></td>
+                                    <td>
+                                        {% if c.nivel == 1 %}
+                                            {% set padrao = visual[c.name]|default(['', '']) %}
+                                            <div class="d-flex flex-column gap-1" style="min-width: 240px">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i class="ti {{ cfg.icone ?: padrao[0] ?: 'ti-point' }}"></i></span>
+                                                    <input class="form-control" name="cat[{{ c.id }}][icone]" value="{{ cfg.icone }}" placeholder="{{ padrao[0] ?: 'ti-point' }}" title="Ícone (nome do Tabler, ex.: ti-tool)">
+                                                </div>
+                                                <input class="form-control form-control-sm" name="cat[{{ c.id }}][texto]" maxlength="200" value="{{ cfg.texto }}" placeholder="{{ padrao[1] ?: 'Texto do cartão' }}">
+                                            </div>
+                                        {% else %}<span class="text-muted small">—</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        <details class="ct-extras">
+                                            <summary>{{ cfg.extras is empty ? 'nenhum' : cfg.extras|length ~ ' campo(s)' }}</summary>
+                                            {% for chave, rotulo in extras %}
+                                                <label class="form-check mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="cat[{{ c.id }}][extras][]" value="{{ chave }}" {{ chave in cfg.extras ? 'checked' }}>
+                                                    <span class="form-check-label small">{{ rotulo }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </details>
+                                    </td>
+                                    <td>
+                                        <details class="ct-campos-det">
+                                            <summary><span class="ct-campos-n">{{ cfg.campos is empty ? 'nenhum' : cfg.campos|length ~ ' campo(s)' }}</span></summary>
+                                            <div class="ct-campos-lista" data-cat="{{ c.id }}">
+                                                {% for campo in cfg.campos %}{{ ct.linha_campo(c.id, loop.index0, campo, tipos_campo) }}{% endfor %}
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary ct-campo-add" data-cat="{{ c.id }}"><i class="ti ti-plus"></i><span>Adicionar campo</span></button>
+                                        </details>
+                                    </td>
+                                    <td><input class="form-control form-control-sm" style="min-width: 160px" name="cat[{{ c.id }}][link]" maxlength="500" value="{{ cfg.link }}"></td>
+                                </tr>
+                            {% else %}
+                                <tr><td colspan="7" class="text-muted">A categoria escolhida não tem subcategorias.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <template id="ct-campo-modelo">{{ ct.linha_campo('__C__', '__N__', {}, tipos_campo) }}</template>
+        {% else %}
+            <div class="alert alert-info">Salve a tela para configurar os pedidos (categorias), cartões e campos próprios.</div>
+        {% endif %}
+
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-4">
+            <div class="d-flex gap-2">
+                {% if t.id %}
+                    <button type="submit" name="excluir" value="1" class="btn btn-ghost-danger" formnovalidate
+                            onclick="return confirm('Excluir esta tela? Os chamados já abertos não são apagados.');"><i class="ti ti-trash"></i><span>Excluir tela</span></button>
+                    <button type="submit" name="duplicar" value="1" class="btn btn-outline-secondary" formnovalidate
+                            onclick="return confirm('Criar uma cópia desta tela (desativada)? O que você mudou aqui e não salvou não entra na cópia.');"><i class="ti ti-copy"></i><span>Duplicar tela</span></button>
+                {% endif %}
+            </div>
+            <button type="submit" name="salvar" value="1" class="btn btn-primary btn-lg"><i class="ti ti-device-floppy"></i><span>Salvar</span></button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    var icone = document.getElementById('tl-icone');
+    var ver = document.getElementById('tl-icone-ver');
+    icone.addEventListener('input', function () { ver.className = icone.value; });
+    var prio = document.getElementById('tl-prioridade');
+    var padrao = document.getElementById('tl-padrao');
+    function ajustar() { padrao.style.display = prio.checked ? 'none' : ''; }
+    prio.addEventListener('change', ajustar);
+    ajustar();
+    document.querySelectorAll('.ct-extras').forEach(function (d) {
+        d.addEventListener('change', function () {
+            var n = d.querySelectorAll('input:checked').length;
+            d.querySelector('summary').textContent = n ? n + ' campo(s)' : 'nenhum';
+        });
+    });
+
+    // Mostrar / ocultar todos os pedidos de uma vez
+    [['ct-mostrar-todos', true], ['ct-ocultar-todos', false]].forEach(function (par) {
+        var b = document.getElementById(par[0]);
+        if (b) {
+            b.addEventListener('click', function () {
+                document.querySelectorAll('.ct-mostrar').forEach(function (c) { c.checked = par[1]; });
+            });
+        }
+    });
+
+    // Construtor de campos próprios
+    var modelo = document.getElementById('ct-campo-modelo');
+    var contador = 1000;
+    function contar(det) {
+        var n = det.querySelectorAll('.ct-campo-linha').length;
+        det.querySelector('.ct-campos-n').textContent = n ? n + ' campo(s)' : 'nenhum';
+    }
+    document.querySelectorAll('.ct-campo-add').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var cid = b.dataset.cat;
+            var det = b.closest('details');
+            det.querySelector('.ct-campos-lista').insertAdjacentHTML('beforeend',
+                modelo.innerHTML.replace(/__C__/g, cid).replace(/__N__/g, String(contador++)));
+            contar(det);
+            var campos = det.querySelectorAll('.ct-campo-linha');
+            campos[campos.length - 1].querySelector('input[name$="[rotulo]"]').focus();
+        });
+    });
+    document.addEventListener('click', function (ev) {
+        var r = ev.target.closest('.ct-campo-rem');
+        if (r) {
+            var det = r.closest('details');
+            r.closest('.ct-campo-linha').remove();
+            contar(det);
+        }
+    });
+    document.addEventListener('change', function (ev) {
+        if (ev.target.classList && ev.target.classList.contains('ct-campo-tipo')) {
+            var mostrar = ['lista', 'multipla'].indexOf(ev.target.value) >= 0;
+            ev.target.closest('.ct-campo-linha').querySelector('.ct-campo-opcoes').classList.toggle('d-none', !mostrar);
+        }
+    });
+})();
+</script>

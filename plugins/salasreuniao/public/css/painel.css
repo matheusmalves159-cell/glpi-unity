@@ -1,0 +1,4 @@
+/* Cartões de reuniões no painel: só para Super-Admin e o setor responsável */
+html:not(.salasreuniao-painel) .grid-stack-item[gs-id^="plugin_salasreuniao_"] {
+    display: none !important;
+}

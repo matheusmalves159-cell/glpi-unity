@@ -1,0 +1,145 @@
+{% macro chaves(areas, situacao, prefixo, bloqueado) %}
+    <div class="ct-areas">
+        {% for chave, a in areas %}
+            {% set s = situacao[chave]|default('nao') %}
+            <label class="ct-area {{ bloqueado ? 'opacity-75' }}">
+                <span class="ct-area-icone"><i class="{{ a[1] }}"></i></span>
+                <span class="ct-area-texto">
+                    <strong>{{ a[0] }}</strong>
+                    {% if s == 'parcial' %}<span class="badge bg-yellow-lt ms-1" title="Só parte destas permissões está ligada (ajustada na tela avançada). Se não mexer, fica como está.">parcial</span>{% endif %}
+                    <small>{{ a[2] }}</small>
+                </span>
+                <span class="form-check form-switch m-0">
+                    <input type="hidden" name="area[{{ chave }}]" value="{{ s == 'sim' ? '1' : (s == 'nao' ? '0' : 'manter') }}" data-ct-area-valor>
+                    <input class="form-check-input" type="checkbox" {{ s == 'sim' ? 'checked' }} {{ bloqueado ? 'disabled' }}
+                           data-ct-area {{ s == 'parcial' ? 'data-ct-parcial' }} aria-label="{{ a[0] }}">
+                </span>
+            </label>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+<div class="container-fluid ct-acessos" style="max-width: 1300px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <h2 class="mb-0"><i class="ti ti-shield-check"></i> Acessos</h2>
+        <a class="btn btn-outline-secondary" href="{{ path('/front/profile.php') }}"><i class="ti ti-adjustments"></i><span>Tela avançada de perfis</span></a>
+    </div>
+    <p class="text-muted mb-3">
+        Ligue ou desligue as áreas de cada perfil. Cada área junta as permissões do GLPI que ela precisa.
+        As mudanças valem a partir do próximo login de quem usa o perfil.
+    </p>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link {{ aba == 'perfis' ? 'active' }}" href="{{ path('/plugins/chamadoti/front/acessos.php') }}"><i class="ti ti-users-group me-1"></i>Por perfil</a></li>
+        <li class="nav-item"><a class="nav-link {{ aba == 'usuario' ? 'active' }}" href="{{ path('/plugins/chamadoti/front/acessos.php') }}?aba=usuario"><i class="ti ti-user-cog me-1"></i>Para um usuário específico</a></li>
+    </ul>
+
+    {% if aba == 'perfis' %}
+        <div class="row g-3">
+            {% for p in perfis %}
+                <div class="col-12 col-xl-6" id="perfil-{{ p.id }}">
+                    <form method="post" action="{{ path('/plugins/chamadoti/front/acessos.php') }}" class="card h-100">
+                        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="profiles_id" value="{{ p.id }}">
+                        <div class="card-header d-flex align-items-center gap-2">
+                            <h3 class="card-title mb-0">
+                                {% if p.individual %}<i class="ti ti-user me-1"></i>{% elseif p.total %}<i class="ti ti-crown me-1"></i>{% endif %}
+                                {{ p.nome }}
+                            </h3>
+                            <span class="badge bg-secondary-lt">{{ p.membros }} {{ p.membros == 1 ? 'usuário' : 'usuários' }}</span>
+                            {% if p.id == meu %}<span class="badge bg-blue-lt">seu perfil atual</span>{% endif %}
+                            <a class="ms-auto small" href="{{ path('/front/profile.form.php') }}?id={{ p.id }}" title="Todas as permissões deste perfil">ajuste fino</a>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-label small text-muted mb-1" for="ct-desc-{{ p.id }}">Para quem é este perfil</label>
+                            <textarea class="form-control form-control-sm mb-3" id="ct-desc-{{ p.id }}" name="descricao" rows="2" maxlength="500"
+                                      placeholder="Ex.: técnicos do Administrativo que atendem chamados">{{ p.descricao }}</textarea>
+                            {% if p.total %}
+                                <div class="alert alert-info mb-0">Acesso total ao GLPI. Este perfil não é alterado por esta tela (para ninguém perder o acesso de administração).</div>
+                            {% else %}
+                                {{ _self.chaves(areas, p.situacao, 'p' ~ p.id, false) }}
+                            {% endif %}
+                        </div>
+                        <div class="card-footer text-end">
+                            <button type="submit" name="salvar_perfil" value="1" class="btn btn-primary"><i class="ti ti-device-floppy"></i><span>Salvar</span></button>
+                        </div>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" action="{{ path('/plugins/chamadoti/front/acessos.php') }}" class="row g-2 align-items-end">
+                    <input type="hidden" name="aba" value="usuario">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label" for="ct-usuario">Usuário</label>
+                        <select class="form-select" id="ct-usuario" name="usuario" onchange="this.form.submit()">
+                            <option value="">Escolha…</option>
+                            {% for u in usuarios %}
+                                <option value="{{ u.id }}" {{ usuario and usuario.id == u.id ? 'selected' }}>{{ u.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-outline-secondary w-100"><i class="ti ti-search"></i><span>Ver acessos</span></button>
+                    </div>
+                </form>
+                <div class="form-text mt-2">
+                    O GLPI dá permissões por perfil. Para dar (ou tirar) algo de uma pessoa só, ela ganha um
+                    <strong>perfil individual</strong>: uma cópia do perfil dela, que só ela usa. Dá para desfazer quando quiser.
+                </div>
+            </div>
+        </div>
+
+        {% if usuario %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="ti ti-user me-1"></i>{{ usuario.nome }} <span class="text-muted small">({{ usuario.login }})</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3"><span class="text-muted">Perfis:</span>
+                        {% for nome in usuario.perfis %}<span class="badge bg-secondary-lt me-1">{{ nome }}</span>{% else %}<span class="text-muted">nenhum</span>{% endfor %}
+                    </div>
+
+                    {% if usuario.individual %}
+                        <form method="post" action="{{ path('/plugins/chamadoti/front/acessos.php') }}">
+                            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="users_id" value="{{ usuario.id }}">
+                            {{ _self.chaves(areas, usuario.situacao, 'u', false) }}
+                            <div class="d-flex flex-wrap gap-2 justify-content-between mt-3">
+                                <button type="submit" name="remover_individual" value="1" class="btn btn-ghost-secondary"
+                                        onclick="return confirm('Desfazer a personalização? O usuário volta ao perfil que tinha.');">
+                                    <i class="ti ti-arrow-back-up"></i><span>Desfazer personalização</span>
+                                </button>
+                                <button type="submit" name="salvar_usuario" value="1" class="btn btn-primary"><i class="ti ti-device-floppy"></i><span>Salvar acessos de {{ usuario.nome }}</span></button>
+                            </div>
+                        </form>
+                    {% elseif usuario.padrao == total_id %}
+                        <div class="alert alert-info mb-0">Este usuário tem acesso total (Super-Admin).</div>
+                    {% else %}
+                        <form method="post" action="{{ path('/plugins/chamadoti/front/acessos.php') }}">
+                            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="users_id" value="{{ usuario.id }}">
+                            <p class="mb-3">Hoje este usuário segue as permissões do perfil dele. Para liberar ou tirar algo só dele:</p>
+                            <button type="submit" name="personalizar" value="1" class="btn btn-primary"><i class="ti ti-user-cog"></i><span>Personalizar acessos de {{ usuario.nome }}</span></button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<script>
+// Liga/desliga: grava 1/0 no campo escondido; "parcial" começa indeterminado e só muda se mexer
+document.querySelectorAll('.ct-acessos [data-ct-area]').forEach(function (caixa) {
+    var valor = caixa.parentElement.querySelector('[data-ct-area-valor]');
+    if (caixa.hasAttribute('data-ct-parcial')) {
+        caixa.indeterminate = true;
+    }
+    caixa.addEventListener('change', function () {
+        valor.value = caixa.checked ? '1' : '0';
+    });
+});
+</script>

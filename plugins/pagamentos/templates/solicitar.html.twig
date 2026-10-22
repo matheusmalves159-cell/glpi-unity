@@ -1,0 +1,177 @@
+<div class="container-fluid" style="max-width: 1100px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h2 class="mb-0"><i class="ti ti-cash"></i> Solicitação de pagamento</h2>
+        <a class="btn btn-outline-secondary" href="{{ path('/plugins/pagamentos/front/minhas.php') }}">
+            <i class="ti ti-list-check"></i><span>Minhas solicitações</span>
+        </a>
+    </div>
+
+    {% if aviso is not empty %}
+        <div class="alert alert-info">
+            <div class="text-center w-100">
+                {% for p in aviso %}
+                    <p class="{{ loop.last ? 'mb-0' : 'mb-2' }}">{{ p|raw }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <form id="pg-form" method="post" action="{{ path('/plugins/pagamentos/front/solicitar.form.php') }}">
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">1. Fornecedor</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-7">
+                        <label class="form-label required" for="pg-fornecedor">Nome do fornecedor</label>
+                        <input type="text" class="form-control" id="pg-fornecedor" name="fornecedor" maxlength="255" required
+                               value="{{ antigo.fornecedor|default('') }}" placeholder="Ex.: Papelaria Central LTDA">
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label required" for="pg-documento">CNPJ/CPF do fornecedor</label>
+                        <input type="text" class="form-control" id="pg-documento" name="documento" maxlength="18" required inputmode="numeric"
+                               value="{{ antigo.documento|default('') }}" placeholder="00.000.000/0000-00">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">2. Pagamento</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label required" for="pg-valor">Valor do pagamento</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="text" class="form-control text-end" id="pg-valor" name="valor" required inputmode="decimal"
+                                   value="{{ antigo.valor|default('') }}" placeholder="0,00">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label required d-block">Forma de pagamento</label>
+                        {% for chave, rotulo in formas %}
+                            <label class="form-check">
+                                <input class="form-check-input" type="radio" name="forma" value="{{ chave }}" required {{ antigo.forma|default('') == chave ? 'checked' }}>
+                                <span class="form-check-label">{{ rotulo }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="col-12 col-md-4" id="pg-bloco-pix">
+                        <label class="form-label required" for="pg-pix">Dados para transferência/PIX</label>
+                        <input type="text" class="form-control" id="pg-pix" name="pix" maxlength="255"
+                               value="{{ antigo.pix|default('') }}" placeholder="Chave PIX ou banco, agência e conta">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">3. Pedido</h3></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label required" for="pg-servico">Serviço/produto (descrição)</label>
+                        <input type="text" class="form-control" id="pg-servico" name="servico" maxlength="500" required
+                               value="{{ antigo.servico|default('') }}" placeholder="Ex.: Compra de biscoitos para a Sala de Reunião">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label required" for="pg-setor">Setor solicitante</label>
+                        <select class="form-select" id="pg-setor" name="setor" required>
+                            <option value="">Selecione…</option>
+                            {% for s in setores %}
+                                <option value="{{ s }}" {{ antigo.setor|default('') == s ? 'selected' }}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label required" for="pg-local">Local referência da despesa</label>
+                        <select class="form-select" id="pg-local" name="local" required>
+                            <option value="">Selecione…</option>
+                            {% for l in locais %}
+                                <option value="{{ l }}" {{ antigo.local|default('') == l ? 'selected' }}>{{ l }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="pg-obs">Detalhes <span class="text-muted">(opcional)</span></label>
+                        <textarea class="form-control" id="pg-obs" name="observacoes" rows="3" maxlength="4000"
+                                  placeholder="Informações que ajudem o Financeiro">{{ antigo.observacoes|default('') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body d-flex justify-content-end">
+                <button type="submit" name="enviar" value="1" class="btn btn-primary">
+                    <i class="ti ti-send"></i><span>Enviar solicitação</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    var form = document.getElementById('pg-form');
+    var valor = document.getElementById('pg-valor');
+    var doc = document.getElementById('pg-documento');
+    var blocoPix = document.getElementById('pg-bloco-pix');
+    var pix = document.getElementById('pg-pix');
+
+    // Valor no formato brasileiro: 1.234,56
+    function numero(texto) {
+        var s = String(texto).replace(/[^\d,.-]/g, '');
+        if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); }
+        var n = parseFloat(s);
+        return isNaN(n) ? null : n;
+    }
+    function formatarValor() {
+        var n = numero(valor.value);
+        if (n !== null) { valor.value = n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    }
+    valor.addEventListener('blur', formatarValor);
+
+    // CNPJ/CPF com máscara
+    doc.addEventListener('input', function () {
+        var d = doc.value.replace(/\D/g, '').slice(0, 14);
+        if (d.length <= 11) {
+            d = d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            d = d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+        }
+        doc.value = d;
+    });
+
+    // Dados de PIX só quando a forma é transferência/PIX
+    function formaPix() {
+        var marcada = form.querySelector('input[name="forma"]:checked');
+        var ehPix = marcada && marcada.value === 'pix';
+        blocoPix.style.display = ehPix ? '' : 'none';
+        pix.required = !!ehPix;
+    }
+    form.querySelectorAll('input[name="forma"]').forEach(function (r) { r.addEventListener('change', formaPix); });
+
+    form.addEventListener('submit', function (ev) {
+        var digitos = doc.value.replace(/\D/g, '').length;
+        if (digitos !== 11 && digitos !== 14) {
+            ev.preventDefault();
+            doc.setCustomValidity('Informe um CNPJ (14 dígitos) ou CPF (11 dígitos).');
+            doc.reportValidity();
+            doc.setCustomValidity('');
+            return;
+        }
+        if (!(numero(valor.value) > 0)) {
+            ev.preventDefault();
+            valor.setCustomValidity('Informe o valor do pagamento.');
+            valor.reportValidity();
+            valor.setCustomValidity('');
+        }
+    });
+
+    formaPix();
+})();
+</script>
