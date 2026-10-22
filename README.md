@@ -50,4 +50,6 @@ Senhas e `.env`, dumps de banco, planilhas do RH, exportações de chamados, arq
 ## Mais informações
 
 - `docs/GRUPOS-E-PERFIS.md`: como os grupos e perfis estão organizados.
+- `docs/BACKUPS.md`: como guardar backups do banco (fora do Git).
+- `docs/CHECKLIST-PRODUCAO.md`: o que conferir antes e depois de ir para produção.
 - `CHANGELOG.md`: histórico das mudanças.
